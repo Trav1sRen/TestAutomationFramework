@@ -9,7 +9,7 @@ from abc import abstractmethod
 
 import lxml.etree as et
 
-from src.utils import proj_root, encoding
+from ..utils.common_utils import proj_root, encoding
 from .base_obj import BaseObject
 
 

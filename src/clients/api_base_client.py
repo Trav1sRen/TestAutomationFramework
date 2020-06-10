@@ -8,7 +8,7 @@ import requests
 
 from xml import parsers
 from xml.dom import minidom
-from src.utils import encoding
+from ..utils.common_utils import encoding
 
 
 def generate_auth(username, pwd):
