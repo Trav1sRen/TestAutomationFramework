@@ -3,11 +3,17 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-from xml import parsers
-
+import base64
 import requests
+
+from xml import parsers
 from xml.dom import minidom
 from src.utils import encoding
+
+
+def generate_auth(username, pwd):
+    data_bytes = ('%s:%s' % (username, pwd)).encode(encoding)
+    return 'Basic ' + base64.b64encode(data_bytes).decode(encoding)
 
 
 class APIBaseClient:
