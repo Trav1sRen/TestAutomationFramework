@@ -9,7 +9,7 @@ from abc import abstractmethod
 
 import lxml.etree as et
 
-from ..utils.common_utils import proj_root, encoding
+from ..utils.common_utils import proj_root, encoding, typeassert
 from .base_obj import BaseObject
 
 
@@ -19,6 +19,7 @@ def set_attribute_for_node(ele, attr_dict):
             ele.set(key, val)
 
 
+@typeassert(str or bytes)
 def validate_schema(rs_body, schema_name, path='/schema/'):
     # open and read schema file
     with open(proj_root + path + schema_name + '.xsd', encoding=encoding) as schema_file:
@@ -60,10 +61,11 @@ class APIBaseObject(BaseObject):
     def set_headers(self):
         pass
 
-    def assemble_request_xml(self, rq_name, rq_dict, **root_attrs):
+    @typeassert(d=dict)
+    def assemble_request_xml(self, rq_name, d, **root_attrs):
         root = et.Element(rq_name, **root_attrs)
 
-        for key, value in rq_dict.items():
+        for key, value in d.items():
             cur_ele = root
             for node in key.split('.'):
                 attr_dict = {}
