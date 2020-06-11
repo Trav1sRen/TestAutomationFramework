@@ -1,12 +1,18 @@
-from abc import ABCMeta, abstractmethod
-
+from src.utils import typeassert, encoding, CustomDict, convert_xml_to_dict
 from . import APIBaseObject
 
 
-class SoapObjectBase(APIBaseObject, metaclass=ABCMeta):
+class SoapObjectBase(APIBaseObject):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
 
-    @abstractmethod
-    def append_headers(self):
-        pass
+    @typeassert(rs_body=str)
+    def load_client_response(self, rs_body):
+        """
+        Load response from APIBaseClient instance and parse to dict
+        :param rs_body: response str
+        :return: a dict whose instance is CustomDict
+        """
+
+        self.rs_body = bytes(rs_body, encoding=encoding)
+        return CustomDict(convert_xml_to_dict(self.rs_body, trim_ns=True))

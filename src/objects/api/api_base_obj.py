@@ -1,111 +1,15 @@
-import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-import re
 import json
-import lxml.etree as et
-import xmltodict
+import re
 from abc import ABCMeta, abstractmethod
 
-from src.utils.common_utils import proj_root, encoding, typeassert, var_dict
-from src.objects.base_obj import BaseObject
+import lxml.etree as et
 
-
-class CustomDict(dict):
-    def __getitem__(self, key):
-        """
-        Overwrite __getitem__ to return None instead of 'KeyError' when key has no mapping
-        :param key: key used for mapping
-        :return: mapping of the key (None if the key has no mapping)
-        """
-
-        try:
-            val = super().__getitem__(key)
-            if isinstance(val, dict):
-                return CustomDict(val)
-            elif isinstance(val, list):
-                return list(map(lambda e: CustomDict(e) if isinstance(e, dict) else e, val))
-            else:
-                return val
-        except KeyError:
-            return None
-
-
-def set_attribute_for_node(ele, attr_dict):
-    """
-    Set attributes for specific node
-    :param ele: xml node to set the attributes
-    :param attr_dict: attribute dict to append onto the node
-    :return: None
-    """
-
-    if attr_dict:
-        for key, val in attr_dict.items():
-            ele.set(key, val)
-
-
-def strip_ns_prefix(bytes_str):
-    """
-    Remove the namespace of xml string
-    :param bytes_str: xml string in bytes about to be processed
-    :return: xml string without namespaces
-    """
-
-    root = et.fromstring(bytes_str)
-    for ele in root.xpath('descendant-or-self::*'):
-        if ele.prefix:
-            ele.tag = et.QName(ele).localname
-    return et.tostring(root, encoding=encoding)
-
-
-@typeassert(bytes)
-def convert_xml_to_dict(bytes_str):
-    """
-    Convert xml string to dict
-    :param bytes_str: xml string in bytes about to be processed
-    :return: instance of CustomDict
-    """
-
-    new_str = strip_ns_prefix(bytes_str)
-    d = xmltodict.parse(new_str)
-    return CustomDict(d)
-
-
-def validate_schema(rs_body, schema_name):
-    # open and read schema file
-    with open(proj_root + '/schema/' + schema_name + '.xsd', encoding=encoding) as schema_file:
-        schema_to_check = schema_file.read().encode(encoding)
-    xmlschema_doc = et.fromstring(schema_to_check)
-    xmlschema = et.XMLSchema(xmlschema_doc)
-
-    # parse xml
-    doc = None
-    try:
-        doc = et.fromstring(rs_body)
-        logger.info('XML well formed, syntax ok.')
-
-    # check for XML syntax errors
-    except et.XMLSyntaxError as err:
-        logger.error('XML Syntax Error, see error_syntax.log')
-        with open('proj_root + log/error_syntax_' + schema_name + '.log', 'w') as error_log_file:
-            error_log_file.write(str(err))
-
-    # validate against schema
-    if doc is not None:
-        try:
-            xmlschema.assertValid(doc)
-            logger.info('XML valid, schema validation ok.')
-
-        except et.DocumentInvalid:
-            logger.error('Schema validation error, see error_schema.log')
-            with open(proj_root + 'log/error_schema_' + schema_name + '.log', 'w') as error_log_file:
-                error_log_file.write(str(xmlschema.error_log))
+from src.objects import BaseObject
+from src.utils import proj_root, typeassert, var_dict
 
 
 class APIBaseObject(BaseObject, metaclass=ABCMeta):
-    default_headers = None  # default request headers
+    default_headers = {}  # default request headers
     soap_skin = None  # not overwriting if pure xml other than SOAP request
     endpoint = None  # overwrite by each API obj
 
@@ -126,14 +30,34 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
         # current rq name
         self.rq_name = rq_name
 
-        # container of request json body
-        self.rq_dict = {}
-
         # request xml str(convert from json)
         self.rq_body = ''
 
+        # response xml str
+        self.rs_body = ''
+
+    @staticmethod
+    def _set_attribute_for_node(ele, attr_dict):
+        """
+        Set attributes for specific node
+        :param ele: xml node to set the attributes
+        :param attr_dict: attribute dict to append onto the node
+        :return: None
+        """
+
+        if attr_dict:
+            for key, val in attr_dict.items():
+                ele.set(key, val)
+
     @typeassert(rq_dict=dict)
     def assemble_request_xml(self, rq_name, rq_dict, **root_attrs):
+        """
+        Assemble the request xml body
+        :param rq_name: name of the root
+        :param rq_dict: dict parsed from the request json
+        :param root_attrs: attributes on root node
+        :return: None
+        """
         root = et.Element(rq_name, **root_attrs)
 
         for key, value in rq_dict.items():
@@ -158,7 +82,7 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
                     node = match.group(1)
                     if len(cur_ele.findall('.//' + node)) == index:
                         sub_ele = et.SubElement(cur_ele, node)
-                        set_attribute_for_node(sub_ele, attr_dict)
+                        self._set_attribute_for_node(sub_ele, attr_dict)
                         cur_ele = sub_ele
                     else:
                         cur_ele = cur_ele.findall('.//' + node)[index]
@@ -166,16 +90,20 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
                     cur_ele = cur_ele.find(node)
                 else:
                     sub_ele = et.SubElement(cur_ele, node)
-                    set_attribute_for_node(sub_ele, attr_dict)
+                    self._set_attribute_for_node(sub_ele, attr_dict)
                     cur_ele = sub_ele
             cur_ele.text = value
 
         if self.soap_skin:
             self.rq_body = self.soap_skin % (et.tostring(root, encoding='unicode'))
 
-    @abstractmethod
-    def append_headers(self):
-        pass
+    def append_headers(self, **extras):
+        """
+        Append new headers based on various situations
+        :param extras: extra headers
+        :return: None
+        """
+        self.default_headers.update(extras)
 
     def set_env(self, env):
         """
@@ -190,24 +118,24 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
 
         # define post url depending on the environment
         self.url = '/'.join(
-            (self.get_property_from_variables('BaseUrl'), self.get_property_from_variables('Context'), self.endpoint))
+            (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
 
     def unpack_json(self, *file_names, json_name):
         """
         Load json body from files
         :param file_names: a tuple of files in which json need to be combined
         :param json_name: json name to load in the json file that has the same name with RQ
-        :return: None
+        :return: rq dict which has loaded the variables from session
         """
 
         d = {}
         for name in file_names:
-            d = self.load_json(d, name, json_name)
+            d = self._load_json(d, name, json_name)
 
-        self.rq_dict = self.load_variables(d)
+        return self._load_variables(d)
 
     @abstractmethod
-    def load_json(self, d, name, json_name):
+    def _load_json(self, d, name, json_name):
         """
         Customize the logic of loading multiple json files
         :param d: default base dict to append on
@@ -215,15 +143,16 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
         :param json_name: json obj name
         :return: the instance of ChainMap
         """
+
         pass
 
-    def load_variables(self, d):
+    def _load_variables(self, d):
         patt = r'{{(.*?)}}'
         return dict((k, v) for k, v in zip(
             d.keys(), (re.sub(
-                patt, lambda match: self.get_property_from_variables(match.group(1)), val) for val in d.values())))
+                patt, lambda match: self._get_property_from_variables(match.group(1)), val) for val in d.values())))
 
-    def get_property_from_variables(self, var_key):
+    def _get_property_from_variables(self, var_key):
         """
         Get property from variables(globals > envs > var_dict)
         :param var_key: specify the reference key of the variable to be obtained

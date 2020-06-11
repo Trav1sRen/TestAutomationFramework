@@ -1,8 +1,15 @@
+import logging
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
+
 import base64
 import configparser
 from inspect import signature
 
+import lxml.etree as et
 import rootpath
+import xmltodict
 
 proj_root = rootpath.detect()  # this is the project's root path
 
@@ -52,3 +59,90 @@ def typeassert(*tyargs, **ty_kwargs):
         return wrapper
 
     return decorator
+
+
+class CustomDict(dict):
+    def __getitem__(self, key):
+        """
+        Overwrite __getitem__ to return None instead of 'KeyError' when key has no mapping
+        :param key: key used for mapping
+        :return: mapping of the key (None if the key has no mapping)
+        """
+
+        try:
+            val = super().__getitem__(key)
+            if isinstance(val, dict):
+                return CustomDict(val)
+            elif isinstance(val, list):
+                return list(map(lambda e: CustomDict(e) if isinstance(e, dict) else e, val))
+            else:
+                return val
+        except KeyError:
+            return None
+
+
+def strip_ns_prefix(bytes_str):
+    """
+    Remove the namespace of xml string
+    :param bytes_str: xml string in bytes about to be processed
+    :return: xml string without namespaces
+    """
+
+    root = et.fromstring(bytes_str)
+    for ele in root.xpath('descendant-or-self::*'):
+        if ele.prefix:
+            ele.tag = et.QName(ele).localname
+    return et.tostring(root, encoding=encoding)
+
+
+@typeassert(bytes)
+def convert_xml_to_dict(bytes_str, trim_ns=False):
+    """
+    Convert xml string to dict
+    :param bytes_str: xml string in bytes about to be processed
+    :param trim_ns: flag to decide if trim the ns
+    :return: instance of CustomDict
+    """
+
+    new_str = strip_ns_prefix(bytes_str) if trim_ns else bytes_str
+    d = xmltodict.parse(new_str)
+    return CustomDict(d)
+
+
+@typeassert(str)
+def validate_schema(rs_body, schema_name):
+    """
+    Validate the response xml body against schema file
+    :param rs_body: response str
+    :param schema_name: name of the schema file to check against
+    :return: None
+    """
+
+    # open and read schema file
+    with open(proj_root + '/schema/' + schema_name + '.xsd', encoding=encoding) as schema_file:
+        schema_to_check = schema_file.read().encode(encoding)
+    xmlschema_doc = et.fromstring(schema_to_check)
+    xmlschema = et.XMLSchema(xmlschema_doc)
+
+    # parse xml
+    doc = None
+    try:
+        doc = et.fromstring(bytes(rs_body, encoding=encoding))
+        logger.info('XML well formed, syntax ok.')
+
+    # check for XML syntax errors
+    except et.XMLSyntaxError as err:
+        logger.error('XML Syntax Error, see error_syntax.log')
+        with open('proj_root + log/error_syntax_' + schema_name + '.log', 'w') as error_log_file:
+            error_log_file.write(str(err))
+
+    # validate against schema
+    if doc is not None:
+        try:
+            xmlschema.assertValid(doc)
+            logger.info('XML valid, schema validation ok.')
+
+        except et.DocumentInvalid:
+            logger.error('Schema validation error, see error_schema.log')
+            with open(proj_root + 'log/error_schema_' + schema_name + '.log', 'w') as error_log_file:
+                error_log_file.write(str(xmlschema.error_log))

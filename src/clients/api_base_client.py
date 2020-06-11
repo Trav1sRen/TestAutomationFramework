@@ -7,7 +7,6 @@ import requests
 
 from xml import parsers
 from xml.dom import minidom
-from src.utils.common_utils import encoding
 
 
 class APIBaseClient:
@@ -33,6 +32,6 @@ class APIBaseClient:
         try:
             reparsed = minidom.parseString(response.text)
             logger.info('Response Body: \n' + reparsed.toprettyxml(indent="\t"))
-            self.rs_body = bytes(response.text, encoding=encoding)
+            self.rs_body = response.text
         except parsers.expat.ExpatError:
             logger.info('Response Body: \n' + response.text)
