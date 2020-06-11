@@ -14,5 +14,4 @@ class SoapObjectBase(APIBaseObject):
         :return: a dict whose instance is CustomDict
         """
 
-        self.rs_body = bytes(rs_body, encoding=encoding)
-        return CustomDict(convert_xml_to_dict(self.rs_body, trim_ns=True))
+        return CustomDict(convert_xml_to_dict(bytes(rs_body, encoding=encoding), trim_ns=True))

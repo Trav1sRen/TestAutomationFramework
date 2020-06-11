@@ -33,9 +33,6 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
         # request xml str(convert from json)
         self.rq_body = ''
 
-        # response xml str
-        self.rs_body = ''
-
     @staticmethod
     def _set_attribute_for_node(ele, attr_dict):
         """
