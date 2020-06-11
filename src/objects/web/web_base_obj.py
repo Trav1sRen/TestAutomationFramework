@@ -1,4 +1,4 @@
-from .base_obj import BaseObject
+from src.objects.base_obj import BaseObject
 
 
 class WebBaseObject(BaseObject):

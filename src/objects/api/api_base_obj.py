@@ -4,12 +4,13 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 import re
+import json
 import lxml.etree as et
 import xmltodict
 from abc import ABCMeta, abstractmethod
 
-from ..utils.common_utils import proj_root, encoding, typeassert
-from .base_obj import BaseObject
+from src.utils.common_utils import proj_root, encoding, typeassert, var_dict
+from src.objects.base_obj import BaseObject
 
 
 class CustomDict(dict):
@@ -72,9 +73,9 @@ def convert_xml_to_dict(bytes_str):
     return CustomDict(d)
 
 
-def validate_schema(rs_body, schema_name, path='/schema/'):
+def validate_schema(rs_body, schema_name):
     # open and read schema file
-    with open(proj_root + path + schema_name + '.xsd', encoding=encoding) as schema_file:
+    with open(proj_root + '/schema/' + schema_name + '.xsd', encoding=encoding) as schema_file:
         schema_to_check = schema_file.read().encode(encoding)
     xmlschema_doc = et.fromstring(schema_to_check)
     xmlschema = et.XMLSchema(xmlschema_doc)
@@ -104,9 +105,32 @@ def validate_schema(rs_body, schema_name, path='/schema/'):
 
 
 class APIBaseObject(BaseObject, metaclass=ABCMeta):
-    rq_body, headers = None, None  # base attributes for a request
-
+    default_headers = None  # default request headers
     soap_skin = None  # not overwriting if pure xml other than SOAP request
+    endpoint = None  # overwrite by each API obj
+
+    def __init__(self, rq_name):
+        # current environment
+        self.env = ''
+
+        # container for env variables
+        self.envs = []
+
+        # load global variables into container
+        with open(proj_root + '/env/globals.json') as f:
+            self.globals = json.load(f)
+
+        # post url
+        self.url = ''
+
+        # current rq name
+        self.rq_name = rq_name
+
+        # container of request json body
+        self.rq_dict = {}
+
+        # request xml str(convert from json)
+        self.rq_body = ''
 
     @typeassert(rq_dict=dict)
     def assemble_request_xml(self, rq_name, rq_dict, **root_attrs):
@@ -146,9 +170,74 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
                     cur_ele = sub_ele
             cur_ele.text = value
 
-        self.rq_body = self.soap_skin % (et.tostring(root, encoding='unicode'))
+        if self.soap_skin:
+            self.rq_body = self.soap_skin % (et.tostring(root, encoding='unicode'))
 
     @abstractmethod
-    @typeassert(rs_dict=dict)
-    def save_response(self, rs_dict):
+    def append_headers(self):
         pass
+
+    def set_env(self, env):
+        """
+        Set current environment and load env variables
+        :param env: current environment for execution
+        :return: None
+        """
+
+        self.env = env
+        with open(proj_root + '/env/' + env + '.json') as f_obj:
+            self.envs = json.load(f_obj)
+
+        # define post url depending on the environment
+        self.url = '/'.join(
+            (self.get_property_from_variables('BaseUrl'), self.get_property_from_variables('Context'), self.endpoint))
+
+    def unpack_json(self, *file_names, json_name):
+        """
+        Load json body from files
+        :param file_names: a tuple of files in which json need to be combined
+        :param json_name: json name to load in the json file that has the same name with RQ
+        :return: None
+        """
+
+        d = {}
+        for name in file_names:
+            d = self.load_json(d, name, json_name)
+
+        self.rq_dict = self.load_variables(d)
+
+    @abstractmethod
+    def load_json(self, d, name, json_name):
+        """
+        Customize the logic of loading multiple json files
+        :param d: default base dict to append on
+        :param name: json file name
+        :param json_name: json obj name
+        :return: the instance of ChainMap
+        """
+        pass
+
+    def load_variables(self, d):
+        patt = r'{{(.*?)}}'
+        return dict((k, v) for k, v in zip(
+            d.keys(), (re.sub(
+                patt, lambda match: self.get_property_from_variables(match.group(1)), val) for val in d.values())))
+
+    def get_property_from_variables(self, var_key):
+        """
+        Get property from variables(globals > envs > var_dict)
+        :param var_key: specify the reference key of the variable to be obtained
+        :return: obtained mapping value
+        """
+
+        match = list(filter(lambda ele: ele['key'] == var_key and ele['enabled'], self.globals))
+        if match:
+            return match[0]['value']
+        else:
+            match = list(filter(lambda ele: ele['key'] == var_key and ele['enabled'], self.envs))
+            if match:
+                return match[0]['value']
+            elif var_key in var_dict.keys():
+                return var_dict[var_key]
+            else:
+                raise KeyError('Environment key [' + var_key + '] is not found in variables')
