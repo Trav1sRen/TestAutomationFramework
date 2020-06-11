@@ -1,8 +1,10 @@
+from abc import ABCMeta
+
 from src.utils import typeassert, encoding, CustomDict, convert_xml_to_dict
 from . import APIBaseObject
 
 
-class SoapObjectBase(APIBaseObject):
+class SoapObjectBase(APIBaseObject, metaclass=ABCMeta):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
 
@@ -15,3 +17,6 @@ class SoapObjectBase(APIBaseObject):
         """
 
         return CustomDict(convert_xml_to_dict(bytes(rs_body, encoding=encoding), trim_ns=True))
+
+    def process_response(self, rs_dict):
+        raise NotImplementedError('You must customize the logic when processing the response')

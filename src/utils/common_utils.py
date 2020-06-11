@@ -81,20 +81,6 @@ class CustomDict(dict):
             return None
 
 
-def strip_ns_prefix(bytes_str):
-    """
-    Remove the namespace of xml string
-    :param bytes_str: xml string in bytes about to be processed
-    :return: xml string without namespaces
-    """
-
-    root = et.fromstring(bytes_str)
-    for ele in root.xpath('descendant-or-self::*'):
-        if ele.prefix:
-            ele.tag = et.QName(ele).localname
-    return et.tostring(root, encoding=encoding)
-
-
 @typeassert(bytes)
 def convert_xml_to_dict(bytes_str, trim_ns=False):
     """
@@ -103,6 +89,19 @@ def convert_xml_to_dict(bytes_str, trim_ns=False):
     :param trim_ns: flag to decide if trim the ns
     :return: instance of CustomDict
     """
+
+    def strip_ns_prefix(b):
+        """
+        Remove the namespace of xml string
+        :param b: xml string in bytes about to be processed
+        :return: xml string without namespaces
+        """
+
+        root = et.fromstring(b)
+        for ele in root.xpath('descendant-or-self::*'):
+            if ele.prefix:
+                ele.tag = et.QName(ele).localname
+        return et.tostring(root, encoding=encoding)
 
     new_str = strip_ns_prefix(bytes_str) if trim_ns else bytes_str
     d = xmltodict.parse(new_str)

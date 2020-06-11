@@ -1,6 +1,5 @@
 import json
 import re
-from abc import ABCMeta, abstractmethod
 
 import lxml.etree as et
 
@@ -8,7 +7,7 @@ from src.objects import BaseObject
 from src.utils import proj_root, typeassert, var_dict
 
 
-class APIBaseObject(BaseObject, metaclass=ABCMeta):
+class APIBaseObject(BaseObject):
     default_headers = {}  # default request headers
     soap_skin = None  # not overwriting if pure xml other than SOAP request
     endpoint = None  # overwrite by each API obj
@@ -131,7 +130,6 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
 
         return self._load_variables(d)
 
-    @abstractmethod
     def _load_json(self, d, name, json_name):
         """
         Customize the logic of loading multiple json files
@@ -141,7 +139,7 @@ class APIBaseObject(BaseObject, metaclass=ABCMeta):
         :return: the instance of ChainMap
         """
 
-        pass
+        raise NotImplementedError('You must customize the logic when loading the json')
 
     def _load_variables(self, d):
         patt = r'{{(.*?)}}'
