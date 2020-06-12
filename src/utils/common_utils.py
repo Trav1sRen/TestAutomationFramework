@@ -81,30 +81,30 @@ class CustomDict(dict):
             return None
 
 
-@typeassert(bytes)
-def convert_xml_to_dict(bytes_str, trim_ns=False):
+@typeassert(str)
+def convert_xml_to_dict(xml_str, trim_ns=False):
     """
     Convert xml string to dict
-    :param bytes_str: xml string in bytes about to be processed
+    :param xml_str: xml string about to be processed
     :param trim_ns: flag to decide if trim the ns
     :return: instance of CustomDict
     """
 
-    def _strip_ns_prefix(b):
+    def _strip_ns_prefix(s):
         """
         Remove the namespace of xml string
-        :param b: xml string in bytes about to be processed
+        :param s: xml string about to be processed
         :return: xml string without namespaces
         """
 
-        root = et.fromstring(b)
+        root = et.fromstring(s)
         for ele in root.xpath('descendant-or-self::*'):
             if ele.prefix:
                 ele.tag = et.QName(ele).localname
         return et.tostring(root, encoding=encoding)
 
-    new_str = _strip_ns_prefix(bytes_str) if trim_ns else bytes_str
-    d = xmltodict.parse(new_str)
+    result = _strip_ns_prefix(xml_str) if trim_ns else xml_str
+    d = xmltodict.parse(result)
     return CustomDict(d)
 
 
@@ -126,7 +126,7 @@ def validate_schema(rs_body, schema_name):
     # parse xml
     doc = None
     try:
-        doc = et.fromstring(bytes(rs_body, encoding=encoding))
+        doc = et.fromstring(rs_body)
         logger.info('XML well formed, syntax ok.')
 
     # check for XML syntax errors

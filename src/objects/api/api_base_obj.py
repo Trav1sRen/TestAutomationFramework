@@ -4,7 +4,7 @@ import re
 import lxml.etree as et
 
 from src.objects import BaseObject, NotInstantiated
-from src.utils import proj_root, typeassert, var_dict
+from src.utils import proj_root, typeassert, var_dict, encoding
 
 
 class APIBaseObject(BaseObject, metaclass=NotInstantiated):
@@ -91,7 +91,7 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
             cur_ele.text = value
 
         if self.soap_skin:
-            self.rq_body = self.soap_skin % (et.tostring(root, encoding='unicode'))
+            self.rq_body = self.soap_skin % (et.tostring(root, encoding=encoding))
 
     def append_headers(self, **extras):
         """

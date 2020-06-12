@@ -1,5 +1,5 @@
 from src.objects import NotInstantiated
-from src.utils import typeassert, encoding, CustomDict, convert_xml_to_dict
+from src.utils import typeassert, CustomDict, convert_xml_to_dict
 from . import APIBaseObject
 
 
@@ -15,7 +15,7 @@ class SoapObjectBase(APIBaseObject, metaclass=NotInstantiated):
         :return: a dict whose instance is CustomDict
         """
 
-        return CustomDict(convert_xml_to_dict(bytes(rs_body, encoding=encoding), trim_ns=True))
+        return CustomDict(convert_xml_to_dict(rs_body, trim_ns=True))
 
     def process_response(self, rs_dict):
         raise NotImplementedError('You must customize the logic when processing the response')

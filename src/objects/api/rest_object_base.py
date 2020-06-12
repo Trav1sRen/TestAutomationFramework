@@ -16,9 +16,9 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
         """
 
         if data_type == 'json':
-            return json.loads(rs_body)
+            return CustomDict(json.loads(rs_body))
         elif data_type == 'xml':
-            return CustomDict(convert_xml_to_dict(bytes(rs_body, encoding=encoding)))
+            return CustomDict(convert_xml_to_dict(rs_body))
 
     def process_response(self, rs_dict):
         raise NotImplementedError('You must customize the logic when processing the response')
