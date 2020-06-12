@@ -1,11 +1,11 @@
 import json
-from abc import ABCMeta
 
+from src.objects import NotInstantiated
 from src.utils import typeassert, CustomDict, convert_xml_to_dict, encoding
 from . import APIBaseObject
 
 
-class RestObjectBase(APIBaseObject, metaclass=ABCMeta):
+class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body, data_type='json'):
         """

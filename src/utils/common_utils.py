@@ -90,7 +90,7 @@ def convert_xml_to_dict(bytes_str, trim_ns=False):
     :return: instance of CustomDict
     """
 
-    def strip_ns_prefix(b):
+    def _strip_ns_prefix(b):
         """
         Remove the namespace of xml string
         :param b: xml string in bytes about to be processed
@@ -103,7 +103,7 @@ def convert_xml_to_dict(bytes_str, trim_ns=False):
                 ele.tag = et.QName(ele).localname
         return et.tostring(root, encoding=encoding)
 
-    new_str = strip_ns_prefix(bytes_str) if trim_ns else bytes_str
+    new_str = _strip_ns_prefix(bytes_str) if trim_ns else bytes_str
     d = xmltodict.parse(new_str)
     return CustomDict(d)
 

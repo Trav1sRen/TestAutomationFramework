@@ -1,10 +1,9 @@
-from abc import ABCMeta
-
+from src.objects import NotInstantiated
 from src.utils import typeassert, encoding, CustomDict, convert_xml_to_dict
 from . import APIBaseObject
 
 
-class SoapObjectBase(APIBaseObject, metaclass=ABCMeta):
+class SoapObjectBase(APIBaseObject, metaclass=NotInstantiated):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
 

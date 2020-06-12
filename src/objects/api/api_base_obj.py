@@ -3,11 +3,11 @@ import re
 
 import lxml.etree as et
 
-from src.objects import BaseObject
+from src.objects import BaseObject, NotInstantiated
 from src.utils import proj_root, typeassert, var_dict
 
 
-class APIBaseObject(BaseObject):
+class APIBaseObject(BaseObject, metaclass=NotInstantiated):
     default_headers = {}  # default request headers
     soap_skin = None  # not overwriting if pure xml other than SOAP request
     endpoint = None  # overwrite by each API obj
@@ -32,19 +32,6 @@ class APIBaseObject(BaseObject):
         # request xml str(convert from json)
         self.rq_body = ''
 
-    @staticmethod
-    def _set_attribute_for_node(ele, attr_dict):
-        """
-        Set attributes for specific node
-        :param ele: xml node to set the attributes
-        :param attr_dict: attribute dict to append onto the node
-        :return: None
-        """
-
-        if attr_dict:
-            for key, val in attr_dict.items():
-                ele.set(key, val)
-
     @typeassert(rq_dict=dict)
     def assemble_request_xml(self, rq_name, rq_dict, **root_attrs):
         """
@@ -54,6 +41,19 @@ class APIBaseObject(BaseObject):
         :param root_attrs: attributes on root node
         :return: None
         """
+
+        def _set_attribute_for_node(ele, d):
+            """
+            Set attributes for specific node
+            :param ele: xml node to set the attributes
+            :param d: attribute dict to append onto the node
+            :return: None
+            """
+
+            if d:
+                for k, v in d.items():
+                    ele.set(k, v)
+
         root = et.Element(rq_name, **root_attrs)
 
         for key, value in rq_dict.items():
@@ -78,7 +78,7 @@ class APIBaseObject(BaseObject):
                     node = match.group(1)
                     if len(cur_ele.findall('.//' + node)) == index:
                         sub_ele = et.SubElement(cur_ele, node)
-                        self._set_attribute_for_node(sub_ele, attr_dict)
+                        _set_attribute_for_node(sub_ele, attr_dict)
                         cur_ele = sub_ele
                     else:
                         cur_ele = cur_ele.findall('.//' + node)[index]
@@ -86,7 +86,7 @@ class APIBaseObject(BaseObject):
                     cur_ele = cur_ele.find(node)
                 else:
                     sub_ele = et.SubElement(cur_ele, node)
-                    self._set_attribute_for_node(sub_ele, attr_dict)
+                    _set_attribute_for_node(sub_ele, attr_dict)
                     cur_ele = sub_ele
             cur_ele.text = value
 
@@ -116,30 +116,21 @@ class APIBaseObject(BaseObject):
         self.url = '/'.join(
             (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
 
-    def unpack_json(self, *file_names, json_name):
+    def unpack_json(self, **kwargs):
         """
         Load json body from files
-        :param file_names: a tuple of files in which json need to be combined
-        :param json_name: json name to load in the json file that has the same name with RQ
+        :param kwargs: mapping of json file name and jsonobj name
         :return: rq dict which has loaded the variables from session
         """
 
         d = {}
-        for name in file_names:
-            d = self._load_json(d, name, json_name)
+        for file_name, obj_name in kwargs.items():
+            with open(proj_root + '/json/%s.json' % file_name) as file_obj:
+                tmp_d = json.load(file_obj)
+                obj = tmp_d[obj_name]
+                d.update(obj)
 
         return self._load_variables(d)
-
-    def _load_json(self, d, name, json_name):
-        """
-        Customize the logic of loading multiple json files
-        :param d: default base dict to append on
-        :param name: json file name
-        :param json_name: json obj name
-        :return: the instance of ChainMap
-        """
-
-        raise NotImplementedError('You must customize the logic when loading the json')
 
     def _load_variables(self, d):
         patt = r'{{(.*?)}}'
