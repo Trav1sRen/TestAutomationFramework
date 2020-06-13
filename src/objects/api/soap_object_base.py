@@ -11,11 +11,13 @@ class SoapObjectBase(APIBaseObject, metaclass=NotInstantiated):
     def load_client_response(self, rs_body):
         """
         Load response from APIBaseClient instance and parse to dict
-        :param rs_body: response str
+        :param rs_body: response in bytes
         :return: a dict whose instance is CustomDict
+        :rtype: src.utils.CustomDict
         """
 
         return CustomDict(convert_xml_to_dict(rs_body, trim_ns=True))
 
-    def process_response(self, rs_dict):
+    @typeassert(rs=dict)
+    def process_response(self, rs):
         raise NotImplementedError('You must customize the logic when processing the response')

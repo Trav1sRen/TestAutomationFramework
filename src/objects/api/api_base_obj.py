@@ -91,7 +91,7 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
             cur_ele.text = value
 
         if self.soap_skin:
-            self.rq_body = self.soap_skin % (et.tostring(root, encoding=encoding))
+            self.rq_body = self.soap_skin % (et.tostring(root).decode(encoding))
 
     def append_headers(self, **extras):
         """

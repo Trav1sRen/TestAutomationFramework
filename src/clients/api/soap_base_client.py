@@ -7,31 +7,32 @@ import requests
 
 from xml import parsers
 from xml.dom import minidom
-from src.utils import encoding
+from .api_base_client import APIBaseClient
+from src.utils import typeassert
 
 
-class APIBaseClient:
-    rs_body = None
-    status_code = int()
-
-    def send_req(self, url, headers, rq_body, req_type):
+class SoapBaseClient(APIBaseClient):
+    @typeassert(rq_body=str)
+    def send_req(self, url, headers, rq_body):
         logger.info('*********************** REQUEST START ***********************')
-        logger.info('%s to <%s>' % (req_type, url))
+        logger.info('%s to <%s>' % ('POST', url))
         logger.info('Headers: ' + str(headers))
 
         reparsed = minidom.parseString(rq_body)
         logger.info('Request Body: \n' + reparsed.toprettyxml(indent="\t"))
 
-        response = requests.post(url, data=rq_body, headers=headers)
+        response = requests.request('POST', url, headers=headers, data=rq_body)
         logger.info('***********************  REQUEST END  ***********************')
 
         self.status_code = response.status_code
         logger.info('Response Status Code: [' + str(response.status_code) + ']')
+        text = response.text
 
         try:
-            text = response.text.encode(encoding)
             reparsed = minidom.parseString(text)
             logger.info('Response Body: \n' + reparsed.toprettyxml(indent="\t"))
-            self.rs_body = text
+
         except parsers.expat.ExpatError:
-            logger.info('Response Body: \n' + response.text)
+            logger.info('Response Body: \n' + text)
+
+        self.rs_body = text

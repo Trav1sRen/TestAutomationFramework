@@ -84,28 +84,27 @@ class CustomDict(dict):
 @typeassert(str)
 def convert_xml_to_dict(xml_str, trim_ns=False):
     """
-    Convert xml string to dict
-    :param xml_str: xml string about to be processed
+    Convert xml str to dict
+    :param xml_str: xml str about to be processed
     :param trim_ns: flag to decide if trim the ns
-    :return: instance of CustomDict
+    :return: a dict parsed from xml obj
     """
 
     def _strip_ns_prefix(s):
         """
-        Remove the namespace of xml string
-        :param s: xml string about to be processed
-        :return: xml string without namespaces
+        Remove the namespace of xml str
+        :param s: xml str about to be processed
+        :return: xml str without namespaces
         """
 
         root = et.fromstring(s)
         for ele in root.xpath('descendant-or-self::*'):
             if ele.prefix:
                 ele.tag = et.QName(ele).localname
-        return et.tostring(root, encoding=encoding)
+        return et.tostring(root).decode(encoding)
 
     result = _strip_ns_prefix(xml_str) if trim_ns else xml_str
-    d = xmltodict.parse(result)
-    return CustomDict(d)
+    return xmltodict.parse(result)
 
 
 @typeassert(str)
@@ -118,8 +117,8 @@ def validate_schema(rs_body, schema_name):
     """
 
     # open and read schema file
-    with open(proj_root + '/schema/' + schema_name + '.xsd', encoding=encoding) as schema_file:
-        schema_to_check = schema_file.read().encode(encoding)
+    with open(proj_root + '/schema/' + schema_name + '.xsd') as schema_file:
+        schema_to_check = schema_file.read()
     xmlschema_doc = et.fromstring(schema_to_check)
     xmlschema = et.XMLSchema(xmlschema_doc)
 
