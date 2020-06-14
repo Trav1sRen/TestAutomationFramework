@@ -3,13 +3,14 @@ import re
 
 import lxml.etree as et
 
-from src.objects import BaseObject, NotInstantiated
+from src import NotInstantiated
+from src.objects import BaseObject
 from src.utils import proj_root, typeassert, var_dict, encoding
 
 
 class APIBaseObject(BaseObject, metaclass=NotInstantiated):
     default_headers = {}  # default request headers
-    soap_skin = None  # not overwriting if pure xml other than SOAP request
+    soap_skin = '%s'  # not overwriting if pure xml other than SOAP request
     endpoint = None  # overwrite by each API obj
 
     def __init__(self, rq_name):

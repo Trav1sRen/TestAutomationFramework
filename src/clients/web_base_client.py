@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from ..utils.common_utils import proj_root, config
+from src.utils import proj_root, config
 
 
 class WebBaseClient:

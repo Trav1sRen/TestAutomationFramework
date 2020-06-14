@@ -1,4 +1,4 @@
-from src.objects import NotInstantiated
+from src import NotInstantiated
 from src.utils import typeassert, CustomDict, convert_xml_to_dict
 from . import APIBaseObject
 

@@ -8,12 +8,21 @@ from json.decoder import JSONDecodeError
 
 from lxml.etree import XMLSyntaxError
 
-from src.objects import NotInstantiated
+from src import NotInstantiated
 from src.utils import typeassert, CustomDict, convert_xml_to_dict
 from . import APIBaseObject
 
 
 class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
+    def assemble_request_json(self, rq_dict):
+        """
+        Assemble the request json body from flat json
+        :param rq_dict: dict parsed from the request json
+        :return: None
+        """
+
+        self.rq_body = json.dumps(rq_dict)
+
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body):
         """
