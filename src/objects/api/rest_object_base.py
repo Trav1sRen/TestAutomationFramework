@@ -21,6 +21,7 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
         :return: None
         """
 
+        # try reduce and union multiple nested dicts
         self.rq_body = json.dumps(rq_dict)
 
     @typeassert(rs_body=str)

@@ -1,3 +1,5 @@
+from platform import system
+
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.support.wait import WebDriverWait
 
@@ -19,3 +21,13 @@ def fluent_wait(driver, selector, sel_type='css', find_single=True, timeout=conf
             return wait.until(lambda dri: dri.find_element_by_xpath(selector))
         else:
             return wait.until(lambda dri: dri.find_elements_by_xpath(selector))
+
+
+def check_os():
+    if system() == 'Linux':
+        return 'linux'
+    elif system() == "Darwin":
+        return 'mac'
+    elif system() == "Windows":
+        return 'win'
+

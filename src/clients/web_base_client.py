@@ -1,6 +1,6 @@
 from selenium import webdriver
 
-from src.utils import proj_root, config
+from src.utils import proj_root, config, check_os
 
 
 class WebBaseClient:
@@ -11,9 +11,10 @@ class WebBaseClient:
 
     def init_driver(self, with_proxy=False, headless=False):
         proxy = config['WEB']['proxy']
+        os = check_os()
 
         if self.browser == 'Chrome':
-            exe_path = proj_root + '/drivers/chromedriver.exe'
+            exe_path = proj_root + '/drivers/' + os + '/chromedriver.exe'
 
             chrome_options = webdriver.ChromeOptions()
             if headless:
