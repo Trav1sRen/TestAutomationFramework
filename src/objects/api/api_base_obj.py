@@ -59,7 +59,7 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
 
         for key, value in rq_dict.items():
             cur_ele = root
-            for node in key.split('.'):
+            for node in key.split(self.delimiter):
                 attr_dict = {}
 
                 patt = r'(.*?)\((.*?)\)'
