@@ -9,9 +9,11 @@ from src.utils import proj_root, typeassert, var_dict, encoding
 
 
 class APIBaseObject(BaseObject, metaclass=NotInstantiated):
-    default_headers = {}  # default request headers
     soap_skin = '%s'  # not overwriting if pure xml other than SOAP request
-    endpoint = None  # overwrite by each API obj
+    delimiter = '::'  # delimiter of the json keys in json file
+
+    default_headers = {}  # default request headers
+    endpoint = ''  # overwrite by each API obj
 
     def __init__(self, rq_name):
         # current environment
@@ -38,9 +40,8 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
         """
         Assemble the request xml body
         :param rq_name: name of the root
-        :param rq_dict: dict parsed from the request json
+        :param rq_dict: dict parsed from the json file
         :param root_attrs: attributes on root node
-        :return: None
         """
 
         def _set_attribute_for_node(ele, d):
@@ -48,7 +49,6 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
             Set attributes for specific node
             :param ele: xml node to set the attributes
             :param d: attribute dict to append onto the node
-            :return: None
             """
 
             if d:
@@ -91,14 +91,12 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
                     cur_ele = sub_ele
             cur_ele.text = value
 
-        if self.soap_skin:
-            self.rq_body = self.soap_skin % (et.tostring(root).decode(encoding))
+        self.rq_body = self.soap_skin % (et.tostring(root).decode(encoding))
 
     def append_headers(self, **extras):
         """
         Append new headers based on various situations
         :param extras: extra headers
-        :return: None
         """
         self.default_headers.update(extras)
 
@@ -106,7 +104,6 @@ class APIBaseObject(BaseObject, metaclass=NotInstantiated):
         """
         Set current environment and load env variables
         :param env: current environment for execution
-        :return: None
         """
 
         self.env = env

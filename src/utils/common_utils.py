@@ -38,10 +38,7 @@ def generate_auth(username, pwd):
 
 def typeassert(*tyargs, **ty_kwargs):
     """
-    Decorator to implement the type check upon func args
-    :param tyargs: assert types for positional args
-    :param ty_kwargs:  assert types for keyword-only args
-    :return: Inner decorator func
+    Decorator to implement the type check upon arguments
     """
 
     def decorator(func):
@@ -65,8 +62,6 @@ class CustomDict(dict):
     def __getitem__(self, key):
         """
         Overwrite __getitem__ to return None instead of 'KeyError' when key has no mapping
-        :param key: key used for mapping
-        :return: mapping of the key (None if the key has no mapping)
         """
 
         try:
@@ -82,18 +77,17 @@ class CustomDict(dict):
 
 
 @typeassert(str)
-def convert_xml_to_dict(xml_str, trim_ns=False):
+def xml2dict(xml, strip_ns=False):
     """
     Convert xml str to dict
-    :param xml_str: xml str about to be processed
-    :param trim_ns: flag to decide if trim the ns
-    :return: a dict parsed from xml obj
+    :param xml: xml str about to be processed
+    :param strip_ns: flag to decide if stripping the ns
+    :rtype: dict
     """
 
-    def _strip_ns_prefix(s):
+    def _strip_ns(s):
         """
         Remove the namespace of xml str
-        :param s: xml str about to be processed
         :return: xml str without namespaces
         """
 
@@ -103,7 +97,7 @@ def convert_xml_to_dict(xml_str, trim_ns=False):
                 ele.tag = et.QName(ele).localname
         return et.tostring(root).decode(encoding)
 
-    result = _strip_ns_prefix(xml_str) if trim_ns else xml_str
+    result = _strip_ns(xml) if strip_ns else xml
     return xmltodict.parse(result)
 
 
@@ -113,7 +107,6 @@ def validate_schema(rs_body, schema_name):
     Validate the response xml body against schema file
     :param rs_body: response str
     :param schema_name: name of the schema file to check against
-    :return: None
     """
 
     # open and read schema file
