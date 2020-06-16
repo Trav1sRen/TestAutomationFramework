@@ -3,7 +3,7 @@ from src.utils import typeassert, CustomDict, xml2dict
 from . import APIBaseObject
 
 
-class SoapObjectBase(APIBaseObject, metaclass=NotInstantiated):
+class SoapBaseObject(APIBaseObject, metaclass=NotInstantiated):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
 

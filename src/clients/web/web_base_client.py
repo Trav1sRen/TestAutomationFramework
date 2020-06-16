@@ -4,16 +4,13 @@ from src.utils import proj_root, config, check_os
 
 
 class WebBaseClient:
-    driver = None
+    driver = None  # initialized driver
 
-    def __init__(self, browser):
-        self.browser = browser
-
-    def init_driver(self, with_proxy=False, headless=False):
+    def init_driver(self, browser, with_proxy=False, headless=False):
         proxy = config['WEB']['proxy']
         os = check_os()
 
-        if self.browser == 'Chrome':
+        if browser == 'Chrome':
             exe_path = proj_root + '/drivers/' + os + '/chromedriver.exe'
 
             chrome_options = webdriver.ChromeOptions()
@@ -25,3 +22,10 @@ class WebBaseClient:
             chrome_options.add_argument('--window-position=0,0')
 
             self.driver = webdriver.Chrome(executable_path=exe_path, options=chrome_options)
+
+    def open_page(self, url):
+        """
+        Open the specific page
+        :param url: page url to open
+        """
+        self.driver.get(url)

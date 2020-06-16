@@ -1,1 +1,1 @@
-from .web_base_obj import WebBaseObject
+from .page_base_obj import PageBaseObject

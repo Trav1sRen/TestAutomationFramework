@@ -14,7 +14,7 @@ from src.utils import typeassert, CustomDict, xml2dict
 from . import APIBaseObject
 
 
-class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
+class RestBaseObject(APIBaseObject, metaclass=NotInstantiated):
     def unflatten_json(self, rq_dict):
         """
         Convert the flat json to nested json
@@ -32,7 +32,7 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
             path = key.split(self.delimiter)
             _set_nested(output, path, val)
 
-        self.rq_body = json.dumps(output)
+        self.rq_body = json.dumps(output, indent=4)  # for pretty print
 
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body):

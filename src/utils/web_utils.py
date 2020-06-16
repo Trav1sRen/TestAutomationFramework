@@ -8,7 +8,18 @@ from .common_utils import config
 
 def fluent_wait(driver, selector, sel_type='css', find_single=True, timeout=config['WEB']['wait_timeout'],
                 poll_frequency=config['WEB']['poll_frequency']):
+    """
+    Fluent wait until element is found within timeout limit
+    :param driver: current running driver
+    :param selector: locator of the element to be found
+    :param sel_type: locator type
+    :param find_single: flag to decide if returning single element other than list of elements
+    :param timeout: time limit of element locating, raise TimeoutException if beyond the limit
+    :param poll_frequency: time frequency of attempts to obtain
+    :return: obtained web element(s)
+    """
     wait = WebDriverWait(driver, timeout, poll_frequency=poll_frequency,
+                         # commonly ignore exceptions below
                          ignored_exceptions=[NoSuchElementException, StaleElementReferenceException])
 
     if sel_type == 'css':

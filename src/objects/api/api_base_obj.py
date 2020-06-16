@@ -4,11 +4,10 @@ import re
 import lxml.etree as et
 
 from src import NotInstantiated
-from src.objects import BaseObject
 from src.utils import proj_root, typeassert, var_dict, encoding
 
 
-class APIBaseObject(BaseObject, metaclass=NotInstantiated):
+class APIBaseObject(metaclass=NotInstantiated):
     soap_skin = '%s'  # not overwriting if pure xml other than SOAP request
     delimiter = '::'  # delimiter of the json keys in json file
 

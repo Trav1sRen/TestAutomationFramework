@@ -1,3 +1,3 @@
 from .api_base_obj import APIBaseObject
-from .rest_object_base import RestObjectBase
-from .soap_object_base import SoapObjectBase
+from .rest_base_obj import RestBaseObject
+from .soap_base_obj import SoapBaseObject
