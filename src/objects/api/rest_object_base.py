@@ -22,6 +22,8 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
         """
 
         def _get_nested_default(d, path_):
+            # If initial is present, it is placed before the items of the sequence in the calculation,
+            # and serves as a default when the sequence is empty.
             return reduce(lambda d_, k: d_.setdefault(k, {}), path_, d)
 
         def _set_nested(d, path_, value):
@@ -29,7 +31,7 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
 
         output = {}
         for key, val in rq_dict.items():
-            path = val.split(self.delimiter)
+            path = key.split(self.delimiter)
             _set_nested(output, path, val)
 
         self.rq_body = json.dumps(output)
