@@ -22,8 +22,6 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
         """
 
         def _get_nested_default(d, path_):
-            # If initial is present, it is placed before the items of the sequence in the calculation,
-            # and serves as a default when the sequence is empty.
             return reduce(lambda d_, k: d_.setdefault(k, {}), path_, d)
 
         def _set_nested(d, path_, value):
