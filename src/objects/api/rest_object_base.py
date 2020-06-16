@@ -21,16 +21,16 @@ class RestObjectBase(APIBaseObject, metaclass=NotInstantiated):
         :param rq_dict: dict parsed from the json file
         """
 
-        def _get_nested_default(d, path):
-            return reduce(lambda d, k: d.setdefault(k, {}), path, d)
+        def _get_nested_default(d, path_):
+            return reduce(lambda d_, k: d_.setdefault(k, {}), path_, d)
 
-        def _set_nested(d, path, value):
-            _get_nested_default(d, path[:-1])[path[-1]] = value
+        def _set_nested(d, path_, value):
+            _get_nested_default(d, path_[:-1])[path_[-1]] = value
 
         output = {}
-        for k, v in rq_dict.items():
-            path = k.split(self.delimiter)
-            _set_nested(output, path, v)
+        for key, val in rq_dict.items():
+            path = val.split(self.delimiter)
+            _set_nested(output, path, val)
 
         self.rq_body = json.dumps(output)
 
