@@ -3,6 +3,7 @@ from collections.abc import Iterable
 
 from selenium import webdriver
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.webdriver.common.by import By
 
 from src.utils import proj_root, config, check_os, fluent_wait
 
@@ -44,7 +45,7 @@ class WebBaseClient:
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[index])
 
-    def click_operation(self, locator=None, *, locators=None, sel_type='css', double=False, bundle=False):
+    def click_operation(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
         """
         Click the web element, double click is optional
         :param locator: element locator
@@ -72,7 +73,7 @@ class WebBaseClient:
             action_chains = ActionChains(self.driver)
             action_chains.double_click(element).perform()
 
-    def execute_script(self, script, locator=None, sel_type='css', find_single=True, level='document'):
+    def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, find_single=True, level='document'):
         """
         Execute JavaScript at specified level
         :param script: JavaScript expression
