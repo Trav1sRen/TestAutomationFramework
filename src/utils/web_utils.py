@@ -6,12 +6,12 @@ from selenium.webdriver.support.wait import WebDriverWait
 
 from .common_utils import config
 
-timeout_default = config['WEB']['wait_timeout']
-poll_frequency_default = config['WEB']['poll_frequency']
+TIMEOUT = config['WEB']['wait_timeout']
+POLL_FREQUENCY = config['WEB']['poll_frequency']
 
 
-def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, timeout=timeout_default,
-                poll_frequency=poll_frequency_default):
+def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, timeout=TIMEOUT,
+                poll_frequency=POLL_FREQUENCY):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
