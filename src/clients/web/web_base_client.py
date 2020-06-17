@@ -127,6 +127,15 @@ class WebBaseClient:
 
     def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, expected_val='',
                           multi_assert=False):
+        """
+        Compare element text with expectation, comparing multiple texts is supported
+        :param locator: element locator
+        :param locators: container of element locators. When it is a dict, the value is the selector type
+        :param sel_type: locator type
+        :param expected_val: expected text value(s), could be a sequence
+        :param multi_assert: flag to decide the multiple comparison
+        """
+
         if multi_assert:
             if not (isinstance(locators, Iterable) and isinstance(expected_val, Sequence)):
                 raise ValueError(
