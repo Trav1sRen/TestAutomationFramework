@@ -18,7 +18,7 @@ class RestBaseClient(APIBaseClient):
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
-        if not (rq_body or params):
+        if not (rq_body or params is not None):
             raise ValueError('You must at least pass the post body or query params when sending the restful request')
 
         if rq_body and params:
@@ -26,7 +26,7 @@ class RestBaseClient(APIBaseClient):
 
         logger.info('*********************** REQUEST START ***********************')
 
-        if params:
+        if params is not None:  # may be an empty {}
             url = url + '?' + '&'.join('%s=%s' % (k, v) for k, v in params.items())
         logger.info('%s to <%s>' % (method, url))
         logger.info('Headers: ' + str(headers))
@@ -39,7 +39,7 @@ class RestBaseClient(APIBaseClient):
             # request str is in json format
             logger.info('Request Body: \n' + rq_body)
 
-        if params:
+        if params is not None:
             response = requests.request(method, url, headers=headers, verify=self.verify_ssl)
         else:
             response = requests.request(method, url, headers=headers, data=rq_body, verify=self.verify_ssl)

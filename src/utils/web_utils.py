@@ -1,13 +1,17 @@
 from platform import system
 
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 from .common_utils import config
 
+timeout_default = config['WEB']['wait_timeout']
+poll_frequency_default = config['WEB']['poll_frequency']
 
-def fluent_wait(driver, selector, sel_type='css', find_single=True, timeout=config['WEB']['wait_timeout'],
-                poll_frequency=config['WEB']['poll_frequency']):
+
+def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, timeout=timeout_default,
+                poll_frequency=poll_frequency_default):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
@@ -18,20 +22,18 @@ def fluent_wait(driver, selector, sel_type='css', find_single=True, timeout=conf
     :param poll_frequency: time frequency of attempts to obtain
     :return: obtained web element(s)
     """
-    wait = WebDriverWait(driver, timeout, poll_frequency=poll_frequency,
+
+    if sel_type not in By.__dict__.values():
+        raise ValueError('Unknown locator type %s' % sel_type)
+
+    wait = WebDriverWait(driver, timeout, poll_frequency,
                          # commonly ignore exceptions below
                          ignored_exceptions=[NoSuchElementException, StaleElementReferenceException])
 
-    if sel_type == 'css':
-        if find_single:
-            return wait.until(lambda dri: dri.find_element_by_css_selector(selector))
-        else:
-            return wait.until(lambda dri: dri.find_elements_by_css_selector(selector))
-    elif sel_type == 'xpath':
-        if find_single:
-            return wait.until(lambda dri: dri.find_element_by_xpath(selector))
-        else:
-            return wait.until(lambda dri: dri.find_elements_by_xpath(selector))
+    if find_single:
+        return wait.until(lambda dri: dri.find_element(sel_type, selector))
+    else:
+        return wait.until(lambda dri: dri.find_elements(sel_type, selector))
 
 
 def check_os():
