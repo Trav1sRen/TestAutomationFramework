@@ -4,6 +4,9 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 import re
+import sys
+import time
+from datetime import datetime
 from collections.abc import Iterable, Sequence
 
 from selenium import webdriver
@@ -11,29 +14,66 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
+from selenium.webdriver.common.proxy import Proxy, ProxyType
 
 from src.utils import proj_root, config, check_os, fluent_wait
+
+PROXY = config['WEB']['proxy']
+SCROLL_PAUSE_TIME = config['WEB']['scroll_pause_time']
+
+WINDOW_WIDTH = config['WEB']['window_width']
+WINDOW_HEIGHT = config['WEB']['window_height']
 
 
 class WebBaseClient:
     driver = None  # initialized driver
 
-    def init_driver(self, browser, with_proxy=False, headless=False):
-        proxy = config['WEB']['proxy']
+    def init_driver(self, browser, by_proxy=False, headless=False, accept_untrusted_certs=True):
+        """
+        Initialize the web driver for various browser type
+        :param browser: browser type
+        :param by_proxy: If testing by proxy
+        :param headless: If activating headless mode
+        :param accept_untrusted_certs: If accepting untrusted certs of website
+        """
+
         os = check_os()
 
         if browser == 'Chrome':
-            exe_path = proj_root + '/drivers/' + os + '/chromedriver.exe'
+            exe_path = proj_root + '/drivers/%s/chromedriver%s' % os
 
             chrome_options = webdriver.ChromeOptions()
             if headless:
                 chrome_options.add_argument('--headless')
-            if with_proxy:
-                chrome_options.add_argument('--proxy-server=%s' % proxy)
-            chrome_options.add_argument('--window-size=1024,768')
+            if by_proxy:
+                chrome_options.add_argument('--proxy-server=%s' % PROXY)
+            if accept_untrusted_certs:
+                chrome_options.add_argument('--ignore-certificate-errors')
+            chrome_options.add_argument('--window-size=%s,%s' % (WINDOW_WIDTH, WINDOW_HEIGHT))
             chrome_options.add_argument('--window-position=0,0')
 
             self.driver = webdriver.Chrome(executable_path=exe_path, options=chrome_options)
+
+        if browser == 'Firefox':
+            exe_path = proj_root + '/drivers/%s/geckodriver%s' % os
+
+            ff_options = webdriver.FirefoxOptions()
+            if headless:
+                ff_options.headless = True
+            if by_proxy:
+                proxy = Proxy()
+                proxy.proxy_type = ProxyType.MANUAL
+                proxy.http_proxy = PROXY
+                proxy.socks_proxy = PROXY
+                proxy.ssl_proxy = PROXY
+
+                ff_options.proxy = proxy
+            if accept_untrusted_certs:
+                ff_options.accept_insecure_certs = True
+            ff_options.add_argument('--window-size=%s,%s' % (WINDOW_WIDTH, WINDOW_HEIGHT))
+            ff_options.add_argument('--window-position=0,0')
+
+            self.driver = webdriver.Firefox(executable_path=exe_path, options=ff_options)
 
     def nevigate_to(self, url):
         """
@@ -42,6 +82,41 @@ class WebBaseClient:
         """
 
         self.driver.get(url)
+
+    def scroll_to(self, x=0, y='document.body.scrollHeight', to_bottom=False):
+        """
+        Scroll to specified coordinate
+        :param x: horizontal ordinate
+        :param y: vertical ordinate
+        :param to_bottom: flag to decide if to scroll to the bottom of a page with infinite loading
+        """
+
+        if not to_bottom:
+            self.execute_script('window.scrollTo(%s, %s)' % (x, y))
+        else:
+            last_height = self.execute_script("return document.body.scrollHeight")
+
+            while True:
+                # Scroll down to bottom
+                self.scroll_to()
+
+                # Wait to load page
+                time.sleep(SCROLL_PAUSE_TIME)
+
+                # Calculate new scroll height and compare with last scroll height
+                new_height = self.execute_script("return document.body.scrollHeight")
+                if new_height == last_height:
+                    break
+                last_height = new_height
+
+    def take_screenshot(self):
+        """
+        Should be put in tear_down function of test
+        """
+
+        if sys.exc_info()[0]:
+            now = datetime.now().strftime('%Y-%m-%d_%H-%M-%S')
+            self.driver.get_screenshot_as_file(proj_root + '/screenshots/screenshot-%s.png' % now)
 
     def switch_window(self, index=-1):
         """

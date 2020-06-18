@@ -39,11 +39,11 @@ def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, ti
 def check_os():
     """
     Check current platform running on
-    :return: directory name to load the matched driver
+    :return: tuple of directory name to load the matched driver and the extend name of file
     """
     if system() == 'Linux':
-        return 'linux'
+        return 'linux', ''
     elif system() == "Darwin":
-        return 'mac'
+        return 'mac', ''
     elif system() == "Windows":
-        return 'win'
+        return 'win', '.exe'
