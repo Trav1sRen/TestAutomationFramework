@@ -64,7 +64,7 @@ class WebBaseClient:
 
         if bundle:
             if not isinstance(locators, Iterable):
-                raise ValueError('"locators" param should be an iterable if "bundle" flag is positive')
+                raise ValueError('"locators" argument should be an iterable if "bundle" flag is positive')
 
             if isinstance(locators, dict):
                 for loc, sel in locators.items():
@@ -82,7 +82,8 @@ class WebBaseClient:
                 action_chains = ActionChains(self.driver)
                 action_chains.double_click(element).perform()
 
-    def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, find_single=True, level='document'):
+    def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, find_single=True, level='document',
+                       lines=False):
         """
         Execute JavaScript at specified level
         :param script: JavaScript expression
@@ -90,6 +91,7 @@ class WebBaseClient:
         :param sel_type: locator type
         :param find_single: flag to decide if returning single element other than list of elements
         :param level: level of script executing on
+        :param lines: flag to decide if executing lines of script on document level
         """
 
         if level not in ('document', 'element'):
@@ -102,7 +104,14 @@ class WebBaseClient:
             found = fluent_wait(self.driver, locator, sel_type, find_single)
             self.driver.execute_script(script, found)
         else:
-            if not re.match(r'document', script):
+            if lines:
+                if not isinstance(script, Sequence):
+                    raise ValueError('"script" argument should be a sequence if "lines" flag is positive')
+
+                for line in script:
+                    self.execute_script(line)
+
+            if not re.match(r'document|window', script):
                 raise ValueError(err_msg)
             self.driver.execute_script(script)
 
@@ -139,7 +148,7 @@ class WebBaseClient:
         if multi_assert:
             if not (isinstance(locators, Iterable) and isinstance(expected_val, Sequence)):
                 raise ValueError(
-                    '"locators" and "expected_val" param should be an iterable if "multi_assert" flag is positive')
+                    '"locators" and "expected_val" argument should be an iterable if "multi_assert" flag is positive')
 
             if isinstance(locators, dict):
                 actual = map(lambda ele: ele.text,
