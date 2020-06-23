@@ -1,7 +1,5 @@
 lxml
 requests
-pytest
 xmltodict
 rootpath
 selenium
-twine
