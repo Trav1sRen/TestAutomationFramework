@@ -8,3 +8,6 @@
 .idea/vcs.xml
 .idea/encodings.xml
 test.py
+/build/
+/dist/
+/test_automation_framework.egg-info/
