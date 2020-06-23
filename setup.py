@@ -1,8 +1,18 @@
 from setuptools import setup, find_packages
 
+from src.utils import parse_requirements
+
+install_reqs = parse_requirements('requirements.txt')
+
 setup(
     name='test_automation_framework',
     version='1.0.0',
+
+    url="https://github.com/Trav1sRen/TestAutomationFramework",
     author='Travis Ren',
-    packages=find_packages()
+
+    packages=find_packages(),
+    include_package_data=True,
+    platforms="any",
+    install_requires=install_reqs
 )
