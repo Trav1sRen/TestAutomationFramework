@@ -9,7 +9,7 @@ from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from xml import parsers
 from xml.dom import minidom
 from .api_base_client import APIBaseClient
-from src.utils import typeassert
+from taf.utils import typeassert
 
 
 class RestBaseClient(APIBaseClient):

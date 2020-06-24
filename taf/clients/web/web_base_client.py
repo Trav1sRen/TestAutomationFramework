@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
-from src.utils import proj_root, config, check_os, fluent_wait
+from taf.utils import proj_root, config, check_os, fluent_wait
 
 PROXY = config['WEB']['proxy']
 SCROLL_PAUSE_TIME = config['WEB']['scroll_pause_time']

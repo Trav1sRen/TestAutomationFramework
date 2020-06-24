@@ -1,4 +1,4 @@
-from src import NotInstantiated
+from taf import NotInstantiated
 
 
 class PageBaseObject(metaclass=NotInstantiated):

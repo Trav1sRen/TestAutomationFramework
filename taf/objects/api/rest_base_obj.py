@@ -9,8 +9,8 @@ from json.decoder import JSONDecodeError
 
 from lxml.etree import XMLSyntaxError
 
-from src import NotInstantiated
-from src.utils import typeassert, CustomDict, xml2dict
+from taf import NotInstantiated
+from taf.utils import typeassert, CustomDict, xml2dict
 from . import APIBaseObject
 
 

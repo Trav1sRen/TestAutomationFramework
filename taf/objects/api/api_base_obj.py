@@ -3,8 +3,8 @@ import re
 
 import lxml.etree as et
 
-from src import NotInstantiated
-from src.utils import proj_root, typeassert, var_dict, encoding
+from taf import NotInstantiated
+from taf.utils import proj_root, typeassert, var_dict, encoding
 
 
 class APIBaseObject(metaclass=NotInstantiated):

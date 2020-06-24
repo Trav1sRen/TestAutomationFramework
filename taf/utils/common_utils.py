@@ -137,9 +137,3 @@ def validate_schema(rs_body, schema_name):
             logger.error('Schema validation error, see error_schema.log')
             with open(proj_root + 'log/error_schema_' + schema_name + '.log', 'w') as error_log_file:
                 error_log_file.write(str(xmlschema.error_log))
-
-
-def parse_requirements(filename):
-    """ load requirements from a pip requirements file """
-    lineiter = (line.strip() for line in open(filename))
-    return [line for line in lineiter if line and not line.startswith("#")]
