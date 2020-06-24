@@ -4,24 +4,22 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 import base64
-import configparser
 from inspect import signature
 
 import lxml.etree as et
-import rootpath
 import xmltodict
 
-proj_root = rootpath.detect()  # this is the project's root path
-
-# retrieve project properties
-config = configparser.ConfigParser()
-config.read(proj_root + '/properties.ini')  # name is settled with 'properties.ini'
-
-# default encode when parsing
-encoding = config['API']['encoding']
+# default encoding
+encoding = 'utf-8'
 
 # container for temporary variables
 var_dict = {}
+
+
+def root_path():
+    # Get rootpath of the project which uses the framework as dependency
+    import rootpath
+    return rootpath.detect()
 
 
 def generate_auth(username, pwd):

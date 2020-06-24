@@ -16,62 +16,64 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
-from taf.utils import proj_root, config, check_os, fluent_wait
-
-PROXY = config['WEB']['proxy']
-SCROLL_PAUSE_TIME = config['WEB']['scroll_pause_time']
-
-WINDOW_WIDTH = config['WEB']['window_width']
-WINDOW_HEIGHT = config['WEB']['window_height']
+from taf.utils import proj_root, check_os, fluent_wait
 
 
 class WebBaseClient:
     driver = None  # initialized driver
 
-    def init_driver(self, browser, by_proxy=False, headless=False, accept_untrusted_certs=True):
+    def init_driver(self, browser, by_proxy='', headless=False, accept_untrusted_certs=True, window_width=1440,
+                    window_height=900, window_maximized=False):
         """
         Initialize the web driver for various browser type
         :param browser: browser type
         :param by_proxy: If testing by proxy
         :param headless: If activating headless mode
         :param accept_untrusted_certs: If accepting untrusted certs of website
+        :param window_width: width of initialized driver window
+        :param window_height: height of initialized driver window
+        :param window_maximized: If maximizing the driver window
         """
 
         os = check_os()
-
         if browser == 'Chrome':
             exe_path = proj_root + '/drivers/%s/chromedriver%s' % os
-
             chrome_options = webdriver.ChromeOptions()
+
             if headless:
                 chrome_options.add_argument('--headless')
             if by_proxy:
-                chrome_options.add_argument('--proxy-server=%s' % PROXY)
+                chrome_options.add_argument('--proxy-server=%s' % by_proxy)
             if accept_untrusted_certs:
                 chrome_options.add_argument('--ignore-certificate-errors')
-            chrome_options.add_argument('--window-size=%s,%s' % (WINDOW_WIDTH, WINDOW_HEIGHT))
-            chrome_options.add_argument('--window-position=0,0')
+            if not window_maximized:
+                chrome_options.add_argument('--window-size=%s,%s' % (window_width, window_height))
+                chrome_options.add_argument('--window-position=0,0')
+            else:
+                chrome_options.add_argument('--start-maximized')
 
             self.driver = webdriver.Chrome(executable_path=exe_path, options=chrome_options)
 
         if browser == 'Firefox':
             exe_path = proj_root + '/drivers/%s/geckodriver%s' % os
-
             ff_options = webdriver.FirefoxOptions()
+
             if headless:
                 ff_options.headless = True
             if by_proxy:
                 proxy = Proxy()
                 proxy.proxy_type = ProxyType.MANUAL
-                proxy.http_proxy = PROXY
-                proxy.socks_proxy = PROXY
-                proxy.ssl_proxy = PROXY
-
+                proxy.http_proxy = by_proxy
+                proxy.socks_proxy = by_proxy
+                proxy.ssl_proxy = by_proxy
                 ff_options.proxy = proxy
             if accept_untrusted_certs:
                 ff_options.accept_insecure_certs = True
-            ff_options.add_argument('--window-size=%s,%s' % (WINDOW_WIDTH, WINDOW_HEIGHT))
-            ff_options.add_argument('--window-position=0,0')
+            if not window_maximized:
+                ff_options.add_argument('--window-size=%s,%s' % (window_width, window_height))
+                ff_options.add_argument('--window-position=0,0')
+            else:
+                ff_options.add_argument('--start-maximized')
 
             self.driver = webdriver.Firefox(executable_path=exe_path, options=ff_options)
 
@@ -83,12 +85,13 @@ class WebBaseClient:
 
         self.driver.get(url)
 
-    def scroll_to(self, x=0, y='document.body.scrollHeight', to_bottom=False):
+    def scroll_to(self, x=0, y='document.body.scrollHeight', to_bottom=False, scroll_pause_time=0.5):
         """
         Scroll to specified coordinate
         :param x: horizontal ordinate
         :param y: vertical ordinate
         :param to_bottom: flag to decide if to scroll to the bottom of a page with infinite loading
+        :param scroll_pause_time: pause time of infinite scroll until reach the bottom
         """
 
         if not to_bottom:
@@ -101,7 +104,7 @@ class WebBaseClient:
                 self.scroll_to()
 
                 # Wait to load page
-                time.sleep(SCROLL_PAUSE_TIME)
+                time.sleep(scroll_pause_time)
 
                 # Calculate new scroll height and compare with last scroll height
                 new_height = self.execute_script("return document.body.scrollHeight")

@@ -4,14 +4,8 @@ from selenium.common.exceptions import NoSuchElementException, StaleElementRefer
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from .common_utils import config
 
-TIMEOUT = config['WEB']['wait_timeout']
-POLL_FREQUENCY = config['WEB']['poll_frequency']
-
-
-def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, timeout=TIMEOUT,
-                poll_frequency=POLL_FREQUENCY):
+def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
@@ -26,9 +20,7 @@ def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, ti
     if sel_type not in By.__dict__.values():
         raise ValueError('Unknown locator type %s' % sel_type)
 
-    wait = WebDriverWait(driver, timeout, poll_frequency,
-                         # commonly ignore exceptions below
-                         ignored_exceptions=[NoSuchElementException, StaleElementReferenceException])
+    wait = WebDriverWait(driver, timeout, poll_frequency, (NoSuchElementException, StaleElementReferenceException))
 
     if find_single:
         return wait.until(lambda dri: dri.find_element(sel_type, selector))

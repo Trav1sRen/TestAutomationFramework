@@ -4,17 +4,16 @@ import re
 import lxml.etree as et
 
 from taf import NotInstantiated
-from taf.utils import proj_root, typeassert, var_dict, encoding
+from taf.utils import typeassert, var_dict, encoding
 
 
 class APIBaseObject(metaclass=NotInstantiated):
-    soap_skin = '%s'  # not overwriting if pure xml other than SOAP request
     delimiter = '::'  # delimiter of the json keys in json file
 
     default_headers = {}  # default request headers
     endpoint = ''  # overwrite by each API obj
 
-    def __init__(self, rq_name):
+    def __init__(self):
         # current environment
         self.env = ''
 
@@ -28,19 +27,15 @@ class APIBaseObject(metaclass=NotInstantiated):
         # post url
         self.url = ''
 
-        # current rq name
-        self.rq_name = rq_name
-
         # request xml str(convert from json)
         self.rq_body = ''
 
     @typeassert(rq_dict=dict)
-    def assemble_request_xml(self, rq_name, rq_dict, **root_attrs):
+    def _flatjson2xml(self, root, rq_dict):
         """
         Assemble the request xml body
-        :param rq_name: name of the root
+        :param root: node of root element
         :param rq_dict: dict parsed from the json file
-        :param root_attrs: attributes on root node
         """
 
         def _set_attribute_for_node(ele, d):
@@ -53,8 +48,6 @@ class APIBaseObject(metaclass=NotInstantiated):
             if d:
                 for k, v in d.items():
                     ele.set(k, v)
-
-        root = et.Element(rq_name, **root_attrs)
 
         for key, value in rq_dict.items():
             cur_ele = root
@@ -90,7 +83,7 @@ class APIBaseObject(metaclass=NotInstantiated):
                     cur_ele = sub_ele
             cur_ele.text = value
 
-        self.rq_body = self.soap_skin % (et.tostring(root).decode(encoding))
+        return root
 
     def append_headers(self, **extras):
         """
@@ -106,7 +99,7 @@ class APIBaseObject(metaclass=NotInstantiated):
         """
 
         self.env = env
-        with open(proj_root + '/env/' + env + '.json') as f_obj:
+        with open(self.proj_root + '/env/' + env + '.json') as f_obj:
             self.envs = json.load(f_obj)
 
         # define post url depending on the environment
@@ -122,7 +115,7 @@ class APIBaseObject(metaclass=NotInstantiated):
 
         d = {}
         for file_name, obj_name in kwargs.items():
-            with open(proj_root + '/json/%s.json' % file_name) as file_obj:
+            with open(self.proj_root + '/json/%s.json' % file_name) as file_obj:
                 tmp_d = json.load(file_obj)
                 obj = tmp_d[obj_name]
                 d.update(obj)
