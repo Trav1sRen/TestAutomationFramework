@@ -4,7 +4,7 @@ import re
 import lxml.etree as et
 
 from taf import NotInstantiated
-from taf.utils import typeassert, var_dict, encoding
+from taf.utils import typeassert, var_dict, proj_root, encoding
 
 
 class APIBaseObject(metaclass=NotInstantiated):
@@ -13,7 +13,9 @@ class APIBaseObject(metaclass=NotInstantiated):
     default_headers = {}  # default request headers
     endpoint = ''  # overwrite by each API obj
 
-    def __init__(self):
+    soap_skin = None  # need to be overwritten by each API obj
+
+    def __init__(self, rq_name=None):
         # current environment
         self.env = ''
 
@@ -27,8 +29,31 @@ class APIBaseObject(metaclass=NotInstantiated):
         # post url
         self.url = ''
 
-        # request xml str(convert from json)
+        # request data
         self.rq_body = ''
+
+        # name of root node when request data is in xml format
+        if rq_name:
+            self.rq_name = rq_name
+
+    @typeassert(rq_dict=dict)
+    def construct_xml(self, rq_dict, soap=False, **root_attrs):
+        """
+        Assemble the request xml body
+        :param rq_dict: dict parsed from the json file
+        :param soap: flag to judge if a SOAP request
+        :param root_attrs: attributes on root node
+        """
+
+        if soap:
+            if self.soap_skin is None:
+                raise ValueError('class variable "soap_skin" should be overwritten by str containing "%s"')
+
+        root = et.Element(self.rq_name, **root_attrs)
+        root = self._flatjson2xml(root, rq_dict)
+
+        raw = et.tostring(root).decode(encoding)
+        self.rq_body = self.soap_skin % raw if soap else raw
 
     @typeassert(rq_dict=dict)
     def _flatjson2xml(self, root, rq_dict):
@@ -38,7 +63,7 @@ class APIBaseObject(metaclass=NotInstantiated):
         :param rq_dict: dict parsed from the json file
         """
 
-        def _set_attribute_for_node(ele, d):
+        def _setattrs(ele, d):
             """
             Set attributes for specific node
             :param ele: xml node to set the attributes
@@ -71,7 +96,7 @@ class APIBaseObject(metaclass=NotInstantiated):
                     node = match.group(1)
                     if len(cur_ele.findall('.//' + node)) == index:
                         sub_ele = et.SubElement(cur_ele, node)
-                        _set_attribute_for_node(sub_ele, attr_dict)
+                        _setattrs(sub_ele, attr_dict)
                         cur_ele = sub_ele
                     else:
                         cur_ele = cur_ele.findall('.//' + node)[index]
@@ -79,7 +104,7 @@ class APIBaseObject(metaclass=NotInstantiated):
                     cur_ele = cur_ele.find(node)
                 else:
                     sub_ele = et.SubElement(cur_ele, node)
-                    _set_attribute_for_node(sub_ele, attr_dict)
+                    _setattrs(sub_ele, attr_dict)
                     cur_ele = sub_ele
             cur_ele.text = value
 
@@ -99,7 +124,7 @@ class APIBaseObject(metaclass=NotInstantiated):
         """
 
         self.env = env
-        with open(self.proj_root + '/env/' + env + '.json') as f_obj:
+        with open(proj_root + '/env/' + env + '.json') as f_obj:
             self.envs = json.load(f_obj)
 
         # define post url depending on the environment
@@ -115,7 +140,7 @@ class APIBaseObject(metaclass=NotInstantiated):
 
         d = {}
         for file_name, obj_name in kwargs.items():
-            with open(self.proj_root + '/json/%s.json' % file_name) as file_obj:
+            with open(proj_root + '/json/%s.json' % file_name) as file_obj:
                 tmp_d = json.load(file_obj)
                 obj = tmp_d[obj_name]
                 d.update(obj)

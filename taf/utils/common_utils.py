@@ -8,6 +8,7 @@ from inspect import signature
 
 import lxml.etree as et
 import xmltodict
+import sys
 
 # default encoding
 encoding = 'utf-8'
@@ -15,11 +16,8 @@ encoding = 'utf-8'
 # container for temporary variables
 var_dict = {}
 
-
-def root_path():
-    # Get rootpath of the project which uses the framework as dependency
-    import rootpath
-    return rootpath.detect()
+# Get rootpath of the project which uses the framework as dependency
+proj_root = sys.path[1]
 
 
 def generate_auth(username, pwd):
