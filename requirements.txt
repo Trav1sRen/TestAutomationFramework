@@ -1,5 +1,4 @@
 lxml
 requests
 xmltodict
-rootpath
 selenium

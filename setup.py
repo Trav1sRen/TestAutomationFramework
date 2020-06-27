@@ -14,6 +14,5 @@ setup(
     ['lxml',
      'requests',
      'xmltodict',
-     'rootpath',
      'selenium']  # Rmb to add new dependencies into here
 )
