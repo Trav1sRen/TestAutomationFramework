@@ -11,23 +11,21 @@ class APIBaseObject(metaclass=NotInstantiated):
     delimiter = '::'  # delimiter of the json keys in json file
 
     default_headers = {}  # default request headers
+
     endpoint = ''  # overwrite by each API obj
 
     soap_skin = None  # need to be overwritten by each API obj
 
-    def __init__(self, rq_name=None):
-        # current environment
-        self.env = ''
-
-        # container for env variables
-        self.envs = []
-
-        # load global variables into container
+    def __init__(self, env, rq_name=None):
         with open(proj_root + '/env/globals.json') as f:
-            self.globals = json.load(f)
+            self.globals = json.load(f)  # container for global variables
 
-        # post url
-        self.url = ''
+        with open(proj_root + '/env/' + env + '.json') as f_obj:
+            self.envs = json.load(f_obj)  # container for env variables
+
+        # request url
+        self.url = '/'.join(
+            (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
 
         # request data
         self.rq_body = ''
@@ -115,21 +113,7 @@ class APIBaseObject(metaclass=NotInstantiated):
         Append new headers based on various situations
         :param extras: extra headers
         """
-        self.default_headers.update(extras)
-
-    def set_env(self, env):
-        """
-        Set current environment and load env variables
-        :param env: current environment for execution
-        """
-
-        self.env = env
-        with open(proj_root + '/env/' + env + '.json') as f_obj:
-            self.envs = json.load(f_obj)
-
-        # define post url depending on the environment
-        self.url = '/'.join(
-            (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
+        self.default_headers.update(self._load_variables(extras))
 
     def unpack_json(self, **kwargs):
         """
