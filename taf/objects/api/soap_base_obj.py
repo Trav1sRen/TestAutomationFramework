@@ -1,11 +1,13 @@
-from taf import NotInstantiated
 from taf.utils import typeassert, CustomDict, xml2dict
 from . import APIBaseObject
 
 
-class SoapBaseObject(APIBaseObject, metaclass=NotInstantiated):
+class SoapBaseObject(APIBaseObject):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError('Cannot directly instantiate the base class <%s>' % cls.__name__)
 
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body):

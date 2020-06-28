@@ -3,11 +3,10 @@ import re
 
 import lxml.etree as et
 
-from taf import NotInstantiated
 from taf.utils import typeassert, var_dict, proj_root, encoding
 
 
-class APIBaseObject(metaclass=NotInstantiated):
+class APIBaseObject:
     delimiter = '::'  # delimiter of the json keys in json file
 
     default_headers = {}  # default request headers
@@ -15,6 +14,9 @@ class APIBaseObject(metaclass=NotInstantiated):
     endpoint = ''  # overwrite by each API obj
 
     soap_skin = None  # need to be overwritten by each API obj
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError('Cannot directly instantiate the base class <%s>' % cls.__name__)
 
     def __init__(self, env, rq_name=None):
         with open(proj_root + '/env/globals.json') as f:
