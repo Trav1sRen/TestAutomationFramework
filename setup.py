@@ -10,9 +10,5 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     platforms="any",
-    install_requires=
-    ['lxml',
-     'requests',
-     'xmltodict',
-     'selenium']  # Rmb to add new dependencies into here
+    install_requires=['lxml', 'requests', 'xmltodict', 'selenium']  # Rmb to add new dependencies into here
 )
