@@ -9,6 +9,10 @@ class SoapBaseObject(APIBaseObject):
     def __new__(cls, *args, **kwargs):
         raise TypeError('Cannot directly instantiate the base class <%s>' % cls.__name__)
 
+    def rq2dict(self):
+        """ Convert request str data to dict """
+        return CustomDict(xml2dict(self.rq_body, trim_ns=True))
+
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body):
         """

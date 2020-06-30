@@ -29,6 +29,9 @@ class APIBaseObject:
         self.url = '/'.join(
             (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
 
+        # request dict to be parsed
+        self.rq_dict = {}
+
         # request data
         self.rq_body = ''
 
@@ -36,26 +39,33 @@ class APIBaseObject:
         if rq_name:
             self.rq_name = rq_name
 
-    @typeassert(rq_dict=dict)
-    def construct_xml(self, rq_dict, soap=False, **root_attrs):
-        """
-        Assemble the request xml body
-        :param rq_dict: dict parsed from the json file
-        :param soap: flag to judge if a SOAP request
-        :param root_attrs: attributes on root node
-        """
+    @typeassert(qname_attrs=(type(None), dict), attrs=(type(None), dict), nsmap=(type(None), dict))
+    def construct_xml(self, soap=False, ns_attrs=None, nsmap=None, **attrs):
+        """ Assemble the request xml body """
 
         if soap:
             if self.soap_skin is None:
                 raise ValueError('class variable "soap_skin" should be overwritten by str containing "%s"')
 
-        root = et.Element(self.rq_name, **root_attrs)
-        root = self._flatjson2xml(root, rq_dict)
+        attrib = {}
+        if ns_attrs:
+            for key, val in ns_attrs:
+                keys = key.split(':')
+                if len(keys) == 1:
+                    raise ValueError('<%s> is not in the correct format' % key)
+
+                attr_qname = et.QName(nsmap[keys[0]], keys[1])
+                attrib[attr_qname] = val
+
+        if nsmap is None:
+            nsmap = {}
+
+        root = et.Element(self.rq_name, attrib, nsmap, **attrs)
+        root = self._flatjson2xml(root, self.rq_dict)
 
         raw = et.tostring(root).decode(encoding)
         self.rq_body = self.soap_skin % raw if soap else raw
 
-    @typeassert(rq_dict=dict)
     def _flatjson2xml(self, root, rq_dict):
         """
         Assemble the request xml body
@@ -117,21 +127,21 @@ class APIBaseObject:
         """
         self.default_headers.update(self._load_variables(extras))
 
-    def unpack_json(self, **kwargs):
+    @typeassert(kwargs=dict)
+    def unpack_json(self, kwargs):
         """
         Load json body from files
         :param kwargs: mapping of json file name and jsonobj name
-        :return: rq dict which has loaded the variables from session
         """
 
         d = {}
         for file_name, obj_name in kwargs.items():
             with open(proj_root + '/json/%s.json' % file_name) as file_obj:
                 tmp_d = json.load(file_obj)
-                obj = tmp_d[obj_name]
+                obj = tmp_d[obj_name] if obj_name is not None else tmp_d
                 d.update(obj)
 
-        return self._load_variables(d)
+        self.rq_dict = self._load_variables(d)
 
     def _load_variables(self, d):
         patt = r'{{(.*?)}}'
