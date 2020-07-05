@@ -5,7 +5,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 
-def fluent_wait(driver, selector, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
+def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver

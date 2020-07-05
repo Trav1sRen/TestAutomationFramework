@@ -10,6 +10,8 @@ import lxml.etree as et
 import xmltodict
 import sys
 
+from functools import wraps
+
 # default encoding
 encoding = 'utf-8'
 
@@ -41,6 +43,7 @@ def typeassert(*tyargs, **ty_kwargs):
         sig = signature(func)
         bound_types = sig.bind_partial(*tyargs, **ty_kwargs).arguments
 
+        @wraps(func)
         def wrapper(*args, **kwargs):
             bound_values = sig.bind(*args, **kwargs).arguments
             for key, val in bound_values.items():
