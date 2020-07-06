@@ -1,8 +1,8 @@
-from taf import NotInstantiated
-
-
-class PageBaseObject(metaclass=NotInstantiated):
+class PageBaseObject:
     _locators = {}  # container of locators, needs to be overwritten
+
+    def __new__(cls, *args, **kwargs):
+        raise TypeError('Cannot directly instantiate the base class <%s>' % cls.__name__)
 
     def get_loc(self, name):
         """
