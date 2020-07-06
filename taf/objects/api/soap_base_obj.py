@@ -20,6 +20,5 @@ class SoapBaseObject(APIBaseObject):
 
         return CustomDict(xml2dict(rs_body, trim_ns=True))
 
-    @typeassert(rs=dict)
     def process_response(self, rs):
         raise NotImplementedError('You must customize the logic when processing the response')
