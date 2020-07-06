@@ -151,7 +151,7 @@ class WebBaseClient:
                 for loc in locators:
                     self.click_operation(loc, double=double)
 
-        element = fluent_wait(self.driver, locator, sel_type)
+        element = fluent_wait(self.driver, locator, sel_type=sel_type)
 
         if not element.is_selected():
             if not double:
@@ -179,7 +179,7 @@ class WebBaseClient:
         if level == 'element':
             if not re.match(r'arguments\[\d+\]', script):
                 raise ValueError(err_msg)
-            found = fluent_wait(self.driver, locator, sel_type, find_single)
+            found = fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
             self.driver.execute_script(script, found)
         else:
             if lines:
@@ -201,7 +201,7 @@ class WebBaseClient:
         :param keyword: keyword of selection, could be int or str
         """
 
-        select = Select(fluent_wait(self.driver, locator, sel_type))
+        select = Select(fluent_wait(self.driver, locator, sel_type=sel_type))
 
         if isinstance(keyword, int):
             select.select_by_index(keyword)
@@ -230,13 +230,13 @@ class WebBaseClient:
 
             if isinstance(locators, dict):
                 actual = map(lambda ele: ele.text,
-                             (fluent_wait(self.driver, loc, sel) for loc, sel in locators.items()))
+                             (fluent_wait(self.driver, loc, sel_type=sel) for loc, sel in locators.items()))
             else:
                 actual = map(lambda ele: ele.text,
-                             (fluent_wait(self.driver, loc, sel_type) for loc in locators))
+                             (fluent_wait(self.driver, loc, sel_type=sel_type) for loc in locators))
 
         else:
-            actual = fluent_wait(self.driver, locator, sel_type).text
+            actual = fluent_wait(self.driver, locator, sel_type=sel_type).text
 
         logger.info('Actual text value(s): %s' % list(actual))
         logger.info('Expected text value(s): %s' % list(expected_val))

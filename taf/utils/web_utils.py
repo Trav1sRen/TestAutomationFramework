@@ -10,14 +10,20 @@ def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True,
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
     :param selector: locator of the element to be found
-    :param sel_type: locator type
+    :param sel_type: locator type (recommend to use By class variable)
     :param find_single: flag to decide if returning single element other than list of elements
     :param timeout: time limit of element locating, raise TimeoutException if beyond the limit
     :param poll_frequency: time frequency of attempts to obtain
     :return: obtained web element(s)
     """
 
-    if sel_type not in By.__dict__.values():
+    if isinstance(selector, tuple):
+        if len(selector) != 2:
+            raise TypeError('if selector is tuple, shall be the return value of <get_loc> in pageobj')
+        else:
+            selector, sel_type = selector
+
+    if sel_type not in list(By.__dict__.values())[2:-2]:
         raise ValueError('Unknown locator type %s' % sel_type)
 
     wait = WebDriverWait(driver, timeout, poll_frequency, (NoSuchElementException, StaleElementReferenceException))

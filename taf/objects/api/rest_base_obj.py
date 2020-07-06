@@ -14,9 +14,6 @@ from . import APIBaseObject
 
 
 class RestBaseObject(APIBaseObject):
-    def __new__(cls, *args, **kwargs):
-        raise TypeError('Cannot directly instantiate the base class <%s>' % cls.__name__)
-
     def unflatten_json(self, rq_dict):
         """
         Convert the flat json to nested json
