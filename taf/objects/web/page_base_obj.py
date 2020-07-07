@@ -1,16 +1,22 @@
-from selenium.webdriver.common.by import By
+from taf.utils import ALLOWED_LOC_TYPES
 
 
 class PageBaseObject:
-    _locators = {}  # container of locators, needs to be overwritten
+    _locators = {}  # container of locators
 
-    def __init__(self):
-        if not all(isinstance(obj, dict) for obj in self._locators.values()):
-            raise TypeError('Mapping of the element name shall be <dict>')
+    def _set_loc(self, name, loc, loc_type):
+        """
+        Set element locator into container
+        :param name: web element name
+        :param loc: locator expression
+        :param loc_type: locator type (recommend to use By class variable)
+        :return:
+        """
 
-        if not all(loc in list(By.__dict__.values())[2:-2]
-                   for locs in self._locators.values() for loc in locs):
-            raise ValueError('Illegal locator type exists in class variable <_locators>')
+        if loc_type not in ALLOWED_LOC_TYPES:
+            raise ValueError('Illegal locator type <%s>' % loc_type)
+
+        self._locators.setdefault(name, {})[loc_type] = loc
 
     def get_loc(self, name, *, loc_type):
         """

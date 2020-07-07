@@ -4,6 +4,8 @@ from selenium.common.exceptions import NoSuchElementException, StaleElementRefer
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+ALLOWED_LOC_TYPES = list(By.__dict__.values())[2:-2]  # Supported locator types
+
 
 def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
     """
@@ -17,13 +19,10 @@ def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True,
     :return: obtained web element(s)
     """
 
-    if isinstance(selector, tuple):
-        if len(selector) != 2:
-            raise TypeError('if selector is tuple, shall be the return value of <get_loc> in pageobj')
-        else:
-            selector, sel_type = selector
+    if isinstance(selector, tuple):  # Return value of <get_loc> in page object
+        selector, sel_type = selector
 
-    if sel_type not in list(By.__dict__.values())[2:-2]:
+    if sel_type not in ALLOWED_LOC_TYPES:
         raise ValueError('Unknown locator type %s' % sel_type)
 
     wait = WebDriverWait(driver, timeout, poll_frequency, (NoSuchElementException, StaleElementReferenceException))
