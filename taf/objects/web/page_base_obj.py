@@ -4,6 +4,11 @@ from taf.utils import ALLOWED_LOC_TYPES
 class PageBaseObject:
     _locators = {}  # container of locators
 
+    def __new__(cls, *args, **kwargs):
+        if cls is PageBaseObject:
+            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+        return object.__new__(cls)
+
     def _set_loc(self, name, loc, loc_type):
         """
         Set element locator into container

@@ -11,16 +11,21 @@ class APIBaseObject:
 
     default_headers = {}  # default request headers
 
-    endpoint = ''  # overwrite by each API obj
+    endpoint = ''  # overwritten by each API obj
 
-    soap_skin = None  # need to be overwritten by each API obj
+    soap_skin = ''  # overwritten by each API obj
+
+    def __new__(cls, *args, **kwargs):
+        if cls is APIBaseObject:
+            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+        return object.__new__(cls)
 
     def __init__(self, env, rq_name=None):
-        with open(proj_root + '/env/globals.json') as f:
-            self.globals = json.load(f)  # container for global variables
+        with open(proj_root + '/env/globals.json') as fileobj:
+            self.globals = json.load(fileobj)  # container for global variables
 
-        with open(proj_root + '/env/' + env + '.json') as f_obj:
-            self.envs = json.load(f_obj)  # container for env variables
+        with open(proj_root + '/env/' + env + '.json') as fileobj:
+            self.envs = json.load(fileobj)  # container for env variables
 
         # request url
         self.url = '/'.join(

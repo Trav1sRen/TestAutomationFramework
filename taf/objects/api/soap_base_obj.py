@@ -6,6 +6,11 @@ class SoapBaseObject(APIBaseObject):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
 
+    def __new__(cls, *args, **kwargs):
+        if cls is SoapBaseObject:
+            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+        return object.__new__(cls)
+
     def rq2dict(self):
         """ Convert request str data to dict """
         return CustomDict(xml2dict(self.rq_body, trim_ns=True))
@@ -22,3 +27,6 @@ class SoapBaseObject(APIBaseObject):
 
     def process_response(self, rs):
         raise NotImplementedError('You must customize the logic when processing the response')
+
+    process_response = typeassert(rs=dict)(
+        process_response)  # In order to let overrided method possess the decorator as well
