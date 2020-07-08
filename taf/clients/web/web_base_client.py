@@ -130,11 +130,35 @@ class WebBaseClient:
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[index])
 
-    def click_operation(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
+    def input_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val, bundle=False):
+        """
+        Send value(s) to input box(es)
+        :param locator: element locator
+        :param locators: container of element locators
+        :param sel_type: locator type
+        :param val: input value(s), could be a sequence
+        :param bundle: flag to decide if bundle of values to be sent sequentially
+        """
+
+        if bundle:
+            if not (isinstance(locators, Iterable) and isinstance(val, Sequence)):
+                raise ValueError(
+                    'Parameter <locators> and <val> should iterable if <bundle> flag is positive')
+
+            try:
+                for i, (loc, sel) in enumerate(dict(locators).items()):
+                    self.input_action(loc, sel_type=sel, val=val[i])
+            except TypeError:
+                for i, loc in enumerate(locators):
+                    self.input_action(loc, sel_type=sel_type, val=val[i])
+        else:
+            fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
+
+    def click_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
         """
         Click the web element, double click is optional
         :param locator: element locator
-        :param locators: container of element locators. When it is a dict, the value is the selector type
+        :param locators: container of element locators
         :param sel_type: locator type
         :param double: flag to decide if double-clicking the element
         :param bundle: flag to decide if bundle of elements to be clicked sequentially
@@ -142,23 +166,23 @@ class WebBaseClient:
 
         if bundle:
             if not isinstance(locators, Iterable):
-                raise ValueError('"locators" argument should be an iterable if "bundle" flag is positive')
+                raise ValueError('Parameter <locators> should be an iterable if <bundle> flag is positive')
 
-            if isinstance(locators, dict):
-                for loc, sel in locators.items():
-                    self.click_operation(loc, sel_type=sel, double=double)
-            else:
+            try:
+                for loc, sel in dict(locators).items():
+                    self.click_action(loc, sel_type=sel, double=double)
+            except TypeError:
                 for loc in locators:
-                    self.click_operation(loc, double=double)
+                    self.click_action(loc, sel_type=sel_type, double=double)
+        else:
+            element = fluent_wait(self.driver, locator, sel_type=sel_type)
 
-        element = fluent_wait(self.driver, locator, sel_type=sel_type)
-
-        if not element.is_selected():
-            if not double:
-                element.click()
-            else:
-                action_chains = ActionChains(self.driver)
-                action_chains.double_click(element).perform()
+            if not element.is_selected():
+                if not double:
+                    element.click()
+                else:
+                    action_chains = ActionChains(self.driver)
+                    action_chains.double_click(element).perform()
 
     def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, find_single=True, level='document',
                        lines=False):
@@ -173,7 +197,7 @@ class WebBaseClient:
         """
 
         if level not in ('document', 'element'):
-            raise ValueError('Accept a wrong argument for "level"')
+            raise ValueError('Accept a wrong argument for <level>')
 
         err_msg = 'Script expression has no valid pattern'
         if level == 'element':
@@ -184,7 +208,7 @@ class WebBaseClient:
         else:
             if lines:
                 if not isinstance(script, Sequence):
-                    raise ValueError('"script" argument should be a sequence if "lines" flag is positive')
+                    raise ValueError('Parameter <script> should be a sequence if <lines> flag is positive')
 
                 for line in script:
                     self.execute_script(line)
@@ -212,12 +236,12 @@ class WebBaseClient:
                 logger.warning('Could not locate element with visible text "%s", try with value attribute' % keyword)
                 select.select_by_value(keyword)
 
-    def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, expected_val='',
+    def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, expected_val,
                           multi_assert=False):
         """
         Compare element text with expectation, comparing multiple texts is supported
         :param locator: element locator
-        :param locators: container of element locators. When it is a dict, the value is the selector type
+        :param locators: container of element locators
         :param sel_type: locator type
         :param expected_val: expected text value(s), could be a sequence
         :param multi_assert: flag to decide the multiple comparison
@@ -226,12 +250,12 @@ class WebBaseClient:
         if multi_assert:
             if not (isinstance(locators, Iterable) and isinstance(expected_val, Sequence)):
                 raise ValueError(
-                    '"locators" and "expected_val" argument should be an iterable if "multi_assert" flag is positive')
+                    'Parameter <locators> and <expected_val> should be iterable if <multi_assert> flag is positive')
 
-            if isinstance(locators, dict):
+            try:
                 actual = map(lambda ele: ele.text,
-                             (fluent_wait(self.driver, loc, sel_type=sel) for loc, sel in locators.items()))
-            else:
+                             (fluent_wait(self.driver, loc, sel_type=sel) for loc, sel in dict(locators).items()))
+            except TypeError:
                 actual = map(lambda ele: ele.text,
                              (fluent_wait(self.driver, loc, sel_type=sel_type) for loc in locators))
 
