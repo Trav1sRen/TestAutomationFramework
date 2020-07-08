@@ -11,10 +11,6 @@ class SoapBaseObject(APIBaseObject):
             raise TypeError('Cannot directly instantiate the base class %s' % cls)
         return object.__new__(cls)
 
-    def rq_str2dict(self):
-        """ Convert request str data to dict """
-        return CustomDict(xml2dict(self.rq_body, trim_ns=True))
-
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body):
         """
@@ -22,7 +18,7 @@ class SoapBaseObject(APIBaseObject):
         :param rs_body: <rs_body> attr in SoapBaseClient
         """
 
-        self.rs_dict = CustomDict(xml2dict(rs_body, trim_ns=True))
+        self.rs_dict = CustomDict(xml2dict(rs_body, strip_ns=True))
 
     def process_response(self):
         raise NotImplementedError('You must customize the logic when processing the response')

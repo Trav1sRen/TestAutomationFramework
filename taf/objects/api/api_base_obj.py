@@ -3,7 +3,8 @@ import re
 
 import lxml.etree as et
 
-from taf.utils import typeassert, var_dict, proj_root, encoding
+from taf.utils import typeassert, CustomDict, xml2dict
+from taf.utils import var_dict, proj_root, encoding
 
 
 class APIBaseObject:
@@ -39,6 +40,8 @@ class APIBaseObject:
         if rq_name:
             self.rq_name = rq_name
 
+        self._flat_dict = {}  # flat dict parsed from the json file
+
     @typeassert(qname_attrs=(type(None), dict), attrs=(type(None), dict), nsmap=(type(None), dict))
     def construct_xml(self, soap=False, ns_attrs=None, nsmap=None, **attrs):
         """ Assemble the request xml body """
@@ -61,7 +64,7 @@ class APIBaseObject:
             nsmap = {}
 
         root = et.Element(self.rq_name, attrib, nsmap, **attrs)
-        root = self._flatjson2xml(root, self.rq_dict)
+        root = self._flatjson2xml(root, self._flat_dict)
 
         raw = et.tostring(root).decode(encoding)
         self.rq_body = self.soap_skin % raw if soap else raw
@@ -141,7 +144,7 @@ class APIBaseObject:
                 obj = tmp_d[obj_name] if obj_name is not None else tmp_d
                 d.update(obj)
 
-        self.rq_dict = self._load_variables(d)
+        self._flat_dict = self._load_variables(d)
 
     def _load_variables(self, d):
         patt = r'{{(.*?)}}'
@@ -167,3 +170,11 @@ class APIBaseObject:
                 return var_dict[var_key]
             else:
                 raise KeyError('Environment key [' + var_key + '] is not found in variables')
+
+    def rq_str2dict(self):
+        """ Convert request str data to dict """
+
+        try:
+            self.rq_dict = CustomDict(xml2dict(self.rq_body, strip_ns=True))
+        except et.XMLSyntaxError:
+            self.rq_dict = CustomDict(json.loads(self.rq_body))
