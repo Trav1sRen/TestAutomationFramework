@@ -15,27 +15,25 @@ class APIBaseObject:
 
     soap_skin = ''  # overwritten by each API obj
 
+    rq_body, rs_body = '', ''
+
+    rq_dict, rs_dict = {}, {}  # parsed from rq_body and rs_body
+
     def __new__(cls, *args, **kwargs):
         if cls is APIBaseObject:
             raise TypeError('Cannot directly instantiate the base class %s' % cls)
         return object.__new__(cls)
 
     def __init__(self, env, rq_name=None):
-        with open(proj_root + '/env/globals.json') as fileobj:
-            self.globals = json.load(fileobj)  # container for global variables
+        with open(proj_root + '/env/globals.json') as f1:
+            self.globals = json.load(f1)  # container for global variables
 
-        with open(proj_root + '/env/' + env + '.json') as fileobj:
-            self.envs = json.load(fileobj)  # container for env variables
+        with open(proj_root + '/env/' + env + '.json') as f2:
+            self.envs = json.load(f2)  # container for env variables
 
         # request url
         self.url = '/'.join(
             (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
-
-        # request dict to be parsed
-        self.rq_dict = {}
-
-        # request data
-        self.rq_body = ''
 
         # name of root node when request data is in xml format
         if rq_name:

@@ -49,7 +49,7 @@ def typeassert(*tyargs, **ty_kwargs):
             for key, val in bound_values.items():
                 if key in bound_types:
                     if not isinstance(val, bound_types[key]):
-                        raise TypeError('Parameter <%s> must be %s' % (key, bound_types[key]))
+                        raise TypeError('Parameter <%s> must be the type of %s' % (key, bound_types[key]))
             return func(*args, **kwargs)
 
         return wrapper

@@ -42,18 +42,17 @@ class RestBaseObject(APIBaseObject):
     def load_client_response(self, rs_body):
         """
         Load response from APIBaseClient instance and parse to dict
-        :param rs_body: response str
-        :rtype: src.utils.CustomDict
+        :param rs_body: <rs_body> attr in RestBaseClient
         """
 
+        self.rs_body = rs_body
         try:
-            return CustomDict(json.loads(rs_body))
+            self.rs_dict = CustomDict(json.loads(rs_body))
         except JSONDecodeError:
             try:
-                return CustomDict(xml2dict(rs_body))
+                self.rs_dict = CustomDict(xml2dict(rs_body))
             except XMLSyntaxError:
                 logger.warning('Response str could be neither parsed to json nor xml obj')
-                return rs_body
 
-    def process_response(self, rs):
+    def process_response(self):
         raise NotImplementedError('You must customize the logic when processing the response')

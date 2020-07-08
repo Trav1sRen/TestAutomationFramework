@@ -11,7 +11,7 @@ class SoapBaseObject(APIBaseObject):
             raise TypeError('Cannot directly instantiate the base class %s' % cls)
         return object.__new__(cls)
 
-    def rq2dict(self):
+    def rq_str2dict(self):
         """ Convert request str data to dict """
         return CustomDict(xml2dict(self.rq_body, trim_ns=True))
 
@@ -19,14 +19,10 @@ class SoapBaseObject(APIBaseObject):
     def load_client_response(self, rs_body):
         """
         Load response from APIBaseClient instance and parse to dict
-        :param rs_body: response in bytes
-        :rtype: src.utils.CustomDict
+        :param rs_body: <rs_body> attr in SoapBaseClient
         """
 
-        return CustomDict(xml2dict(rs_body, trim_ns=True))
+        self.rs_dict = CustomDict(xml2dict(rs_body, trim_ns=True))
 
-    def process_response(self, rs):
+    def process_response(self):
         raise NotImplementedError('You must customize the logic when processing the response')
-
-    process_response = typeassert(rs=dict)(
-        process_response)  # In order to let overrided method possess the decorator as well
