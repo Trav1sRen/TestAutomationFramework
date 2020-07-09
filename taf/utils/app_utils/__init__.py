@@ -2,18 +2,25 @@ import inspect
 from functools import partial
 from functools import wraps
 
+from appium.webdriver.common.mobileby import MobileBy
 from selenium.webdriver.common.by import By
 
-from taf.utils import fluent_wait
 from .android import AndroidDevices
+from .. import _fluent_wait, ALLOWED_LOC_TYPES
+
+ALLOWED_MOBILE_LOC_TYPES = list(MobileBy.__dict__.values())[1:-1]
 
 
-def _optional_webview(func):
+def app_wait_decorator(func):
     @wraps(func)
     def wrapper(*args, webview=False, **kwargs):
+        sel_type = kwargs['sel_type']
         if not webview:
-            if kwargs['sel_type'] not in (By.XPATH, By.ID, By.CLASS_NAME):
+            if sel_type not in ALLOWED_MOBILE_LOC_TYPES.extend((By.XPATH, By.ID, By.CLASS_NAME,)):
                 raise ValueError('Argument of <sel_type> is not legal for app non-webview testing')
+        else:
+            if sel_type not in set(ALLOWED_LOC_TYPES) - {By.XPATH, By.ID, By.CLASS_NAME}:
+                raise ValueError('Argument of <sel_type> is not legal for app webview testing')
         return func(*args, **kwargs)
 
     sig = inspect.signature(func)
@@ -24,4 +31,4 @@ def _optional_webview(func):
     return wrapper
 
 
-app_fluent_wait = _optional_webview(partial(fluent_wait, sel_type=By.XPATH))
+app_fluent_wait = app_wait_decorator(partial(_fluent_wait, sel_type=By.XPATH))

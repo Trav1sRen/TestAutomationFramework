@@ -1,3 +1,4 @@
+from functools import wraps
 from platform import system
 
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
@@ -7,7 +8,7 @@ from selenium.webdriver.support.wait import WebDriverWait
 ALLOWED_LOC_TYPES = list(By.__dict__.values())[2:-2]  # Supported locator types
 
 
-def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
+def _fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
@@ -21,9 +22,6 @@ def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True,
 
     if isinstance(selector, tuple):  # Return value of <get_loc> in page object
         selector, sel_type = selector
-
-    if sel_type not in ALLOWED_LOC_TYPES:
-        raise ValueError('Unknown locator type %s' % sel_type)
 
     wait = WebDriverWait(driver, timeout, poll_frequency, (NoSuchElementException, StaleElementReferenceException))
 
@@ -44,3 +42,18 @@ def check_os():
         return 'mac', ''
     elif system() == "Windows":
         return 'win', '.exe'
+
+
+def web_wait_decorator(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        sel_type = kwargs['sel_type']
+        if sel_type not in ALLOWED_LOC_TYPES:
+            raise ValueError('Unknown locator type %s' % sel_type)
+
+        return func(*args, **kwargs)
+
+    return wrapper
+
+
+web_fluent_wait = web_wait_decorator(_fluent_wait)
