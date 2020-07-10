@@ -8,7 +8,7 @@ from taf.utils import var_dict, proj_root, encoding
 
 
 class APIBaseObject:
-    delimiter = '::'  # delimiter of the json keys in json file
+    delimiter = '.'  # delimiter of the json keys in json file
 
     default_headers = {}  # default request headers
 
@@ -42,12 +42,12 @@ class APIBaseObject:
 
         self._flat_dict = {}  # flat dict parsed from the json file
 
-    @typeassert(qname_attrs=(type(None), dict), attrs=(type(None), dict), nsmap=(type(None), dict))
+    @typeassert(ns_attrs=(type(None), dict), nsmap=(type(None), dict), attrs=dict)
     def construct_xml(self, soap=False, ns_attrs=None, nsmap=None, **attrs):
         """ Assemble the request xml body """
 
         if soap:
-            if self.soap_skin is None:
+            if not self.soap_skin:
                 raise ValueError('class variable "soap_skin" should be overwritten by str containing "%s"')
 
         attrib = {}
@@ -64,24 +64,29 @@ class APIBaseObject:
             nsmap = {}
 
         root = et.Element(self.rq_name, attrib, nsmap, **attrs)
-        root = self._flatjson2xml(root, self._flat_dict)
+        root = self._flatjson2xml(root, self._flat_dict, nsmap)
 
         raw = et.tostring(root).decode(encoding)
         self.rq_body = self.soap_skin % raw if soap else raw
 
-    def _flatjson2xml(self, root, rq_dict):
+    def _flatjson2xml(self, root, rq_dict, nsmap):
         """
         Assemble the request xml body
         :param root: node of root element
         :param rq_dict: dict parsed from the json file
         """
 
+        def _create_subelement(ele, name):
+            """ Create sub-element for current node """
+
+            if re.match(r'(\w+):(\w+)', name):
+                m = re.match(r'(\w+):(\w+)', name)
+                return et.SubElement(ele, nsmap[m.group(1)] + m.group(2))
+            else:
+                return et.SubElement(ele, name)
+
         def _setattrs(ele, d):
-            """
-            Set attributes for specific node
-            :param ele: xml node to set the attributes
-            :param d: attribute dict to append onto the node
-            """
+            """ Set attributes for specific node """
 
             if d:
                 for k, v in d.items():
@@ -108,7 +113,7 @@ class APIBaseObject:
                     index = int(match.group(2))
                     node = match.group(1)
                     if len(cur_ele.findall('.//' + node)) == index:
-                        sub_ele = et.SubElement(cur_ele, node)
+                        sub_ele = _create_subelement(cur_ele, node)
                         _setattrs(sub_ele, attr_dict)
                         cur_ele = sub_ele
                     else:
@@ -116,7 +121,7 @@ class APIBaseObject:
                 elif cur_ele.find(node) is not None:
                     cur_ele = cur_ele.find(node)
                 else:
-                    sub_ele = et.SubElement(cur_ele, node)
+                    sub_ele = _create_subelement(cur_ele, node)
                     _setattrs(sub_ele, attr_dict)
                     cur_ele = sub_ele
             cur_ele.text = value
