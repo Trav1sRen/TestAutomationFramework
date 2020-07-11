@@ -27,9 +27,10 @@ class RestBaseObject(APIBaseObject):
         """
 
         tmp = 0
+        patt = re.compile('(\w+)\[(\d+)\]')
 
         def _traversal(obj, key):
-            m = re.match(r'(\w+)\[(\d+)\]', key)
+            m = re.match(patt, key)
 
             nonlocal tmp
             if m:
@@ -46,6 +47,10 @@ class RestBaseObject(APIBaseObject):
         output = {}
         for key, val in rq_dict.items():
             path = key.split(self.delimiter)
+
+            if re.match(patt, path[-1]):
+                raise ValueError('Last key of path should not contain index')
+
             obj = reduce(_traversal, path[:-1], output)
             if isinstance(obj, list):
                 obj.insert(tmp, {path[-1]: val})
