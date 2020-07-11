@@ -16,7 +16,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
-from taf.utils import proj_root, check_os, fluent_wait
+from taf.utils import proj_root, check_os, web_fluent_wait
 
 
 class WebBaseClient:
@@ -152,7 +152,7 @@ class WebBaseClient:
                 for i, loc in enumerate(locators):
                     self.input_action(loc, sel_type=sel_type, val=val[i])
         else:
-            fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
+            web_fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
 
     def click_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
         """
@@ -175,7 +175,7 @@ class WebBaseClient:
                 for loc in locators:
                     self.click_action(loc, sel_type=sel_type, double=double)
         else:
-            element = fluent_wait(self.driver, locator, sel_type=sel_type)
+            element = web_fluent_wait(self.driver, locator, sel_type=sel_type)
 
             if not element.is_selected():
                 if not double:
@@ -203,7 +203,7 @@ class WebBaseClient:
         if level == 'element':
             if not re.match(r'arguments\[\d+\]', script):
                 raise ValueError(err_msg)
-            found = fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
+            found = web_fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
             self.driver.execute_script(script, found)
         else:
             if lines:
@@ -225,7 +225,7 @@ class WebBaseClient:
         :param keyword: keyword of selection, could be int or str
         """
 
-        select = Select(fluent_wait(self.driver, locator, sel_type=sel_type))
+        select = Select(web_fluent_wait(self.driver, locator, sel_type=sel_type))
 
         if isinstance(keyword, int):
             select.select_by_index(keyword)
@@ -254,13 +254,13 @@ class WebBaseClient:
 
             try:
                 actual = map(lambda ele: ele.text,
-                             (fluent_wait(self.driver, loc, sel_type=sel) for loc, sel in dict(locators).items()))
+                             (web_fluent_wait(self.driver, loc, sel_type=sel) for loc, sel in dict(locators).items()))
             except TypeError:
                 actual = map(lambda ele: ele.text,
-                             (fluent_wait(self.driver, loc, sel_type=sel_type) for loc in locators))
+                             (web_fluent_wait(self.driver, loc, sel_type=sel_type) for loc in locators))
 
         else:
-            actual = fluent_wait(self.driver, locator, sel_type=sel_type).text
+            actual = web_fluent_wait(self.driver, locator, sel_type=sel_type).text
 
         logger.info('Actual text value(s): %s' % list(actual))
         logger.info('Expected text value(s): %s' % list(expected_val))
