@@ -79,9 +79,10 @@ class APIBaseObject:
         def _create_subelement(ele, name):
             """ Create sub-element for current node """
 
-            if re.match(r'(\w+):(\w+)', name):
-                m = re.match(r'(\w+):(\w+)', name)
-                return et.SubElement(ele, nsmap[m.group(1)] + m.group(2))
+            m = re.match(r'(\w+):(\w+)', name)
+            if m:
+                ns, tag = m.groups()
+                return et.SubElement(ele, nsmap[ns] + tag)
             else:
                 return et.SubElement(ele, name)
 
