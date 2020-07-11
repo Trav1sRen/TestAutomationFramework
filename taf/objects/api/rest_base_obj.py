@@ -4,6 +4,7 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(level
 logger = logging.getLogger(__name__)
 
 from functools import reduce
+import re
 import json
 from json.decoder import JSONDecodeError
 
@@ -25,16 +26,31 @@ class RestBaseObject(APIBaseObject):
         :param rq_dict: dict parsed from the json file
         """
 
-        def _get_nested_default(d, path_):
-            return reduce(lambda d_, k: d_.setdefault(k, {}), path_, d)
+        tmp = 0
 
-        def _set_nested(d, path_, value):
-            _get_nested_default(d, path_[:-1])[path_[-1]] = value
+        def _traversal(obj, key):
+            m = re.match(r'(\w+)\[(\d+)\]', key)
+
+            nonlocal tmp
+            if m:
+                key, i = m.groups()
+                tmp = int(i)
+                return obj.setdefault(key, [])
+            else:
+                if isinstance(obj, list):
+                    obj.insert(tmp, {key: {}})
+                    return obj[tmp][key]  # must return the view
+                else:
+                    return obj.setdefault(key, {})
 
         output = {}
         for key, val in rq_dict.items():
             path = key.split(self.delimiter)
-            _set_nested(output, path, val)
+            obj = reduce(_traversal, path[:-1], output)
+            if isinstance(obj, list):
+                obj.insert(tmp, {path[-1]: val})
+            else:
+                obj[path[-1]] = val
 
         self.rq_body = json.dumps(output, indent=4)  # for pretty print
 
