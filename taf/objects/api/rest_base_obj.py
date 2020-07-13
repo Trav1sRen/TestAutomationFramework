@@ -27,22 +27,22 @@ class RestBaseObject(APIBaseObject):
         """
 
         tmp = 0
-        patt = re.compile('(\w+)\[(\d+)\]')
+        patt = re.compile(r'(\w+)\[(\d+)\]')
 
-        def _traversal(obj, key):
-            m = re.match(patt, key)
+        def _traversal(o, k):
+            m = re.match(patt, k)
 
             nonlocal tmp
             if m:
-                key, i = m.groups()
+                k, i = m.groups()
                 tmp = int(i)
-                return obj.setdefault(key, [])
+                return o.setdefault(k, [])
             else:
-                if isinstance(obj, list):
-                    obj.insert(tmp, {key: {}})
-                    return obj[tmp][key]  # must return the view
+                if isinstance(o, list):
+                    o.insert(tmp, {k: {}})
+                    return o[tmp][k]  # must return the view
                 else:
-                    return obj.setdefault(key, {})
+                    return o.setdefault(k, {})
 
         output = {}
         for key, val in rq_dict.items():
