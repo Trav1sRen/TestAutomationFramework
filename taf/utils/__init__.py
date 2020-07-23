@@ -7,8 +7,8 @@ from .web_utils import check_os, _fluent_wait, web_fluent_wait, ALLOWED_LOC_TYPE
 
 
 def flat_map(seq, func=None):
-    if not isinstance(seq, (list, tuple)):
-        raise TypeError('Flattened data must be <list> or <tuple>')
+    if not isinstance(seq, (list, tuple, set)):
+        raise TypeError('Flattened data could only be one of <list>, <tuple> or <set>')
     for sub in seq:
         if isinstance(sub, Iterable) and not isinstance(sub, (str, dict)):
             yield from flat_map(sub, func)
