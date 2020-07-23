@@ -8,7 +8,7 @@ class SoapBaseObject(APIBaseObject):
 
     def __new__(cls, *args, **kwargs):
         if cls is SoapBaseObject:
-            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+            raise TypeError('Cannot directly instantiate %s' % cls)
         return object.__new__(cls)
 
     @typeassert(rs_body=str)

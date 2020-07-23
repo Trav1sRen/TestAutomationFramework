@@ -25,6 +25,6 @@ def flat_map(seq, func=None):
             else:
                 r = func(sub)
                 try:
-                    yield from flat_map(r)
+                    yield from flat_map(r)  # flatten the return value of func as well
                 except TypeError:
                     yield r

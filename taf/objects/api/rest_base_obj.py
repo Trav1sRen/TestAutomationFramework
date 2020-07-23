@@ -17,7 +17,7 @@ from . import APIBaseObject
 class RestBaseObject(APIBaseObject):
     def __new__(cls, *args, **kwargs):
         if cls is RestBaseObject:
-            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+            raise TypeError('Cannot directly instantiate %s' % cls)
         return object.__new__(cls)
 
     def unflatten_json(self, rq_dict):

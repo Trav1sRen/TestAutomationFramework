@@ -14,9 +14,9 @@ ALLOWED_MOBILE_LOC_TYPES = list(MobileBy.__dict__.values())[1:-1]
 def app_wait_decorator(func):
     @wraps(func)
     def wrapper(*args, webview=False, **kwargs):
-        sel_type = kwargs['sel_type']
+        sel_type = kwargs.get('sel_type', By.XPATH)
         if not webview:
-            if sel_type not in ALLOWED_MOBILE_LOC_TYPES.extend((By.XPATH, By.ID, By.CLASS_NAME,)):
+            if sel_type not in set(ALLOWED_MOBILE_LOC_TYPES) | {By.XPATH, By.ID, By.CLASS_NAME}:
                 raise ValueError('Argument of <sel_type> is not legal for app non-webview testing')
         else:
             if sel_type not in set(ALLOWED_LOC_TYPES) - {By.XPATH, By.ID, By.CLASS_NAME}:

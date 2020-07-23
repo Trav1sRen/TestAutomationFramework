@@ -7,5 +7,5 @@ class APIBaseClient:
 
     def __new__(cls, *args, **kwargs):
         if cls is APIBaseClient:
-            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+            raise TypeError('Cannot directly instantiate %s' % cls)
         return object.__new__(cls)

@@ -22,7 +22,7 @@ class APIBaseObject:
 
     def __new__(cls, *args, **kwargs):
         if cls is APIBaseObject:
-            raise TypeError('Cannot directly instantiate the base class %s' % cls)
+            raise TypeError('Cannot directly instantiate %s' % cls)
         return object.__new__(cls)
 
     def __init__(self, env, rq_name=None):
