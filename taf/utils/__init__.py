@@ -7,6 +7,13 @@ from .web_utils import check_os, _fluent_wait, web_fluent_wait, ALLOWED_LOC_TYPE
 
 
 def flat_map(seq, func=None):
+    """
+    Customized flatMap method similar with JavaScript
+    :param seq: Flattened data
+    :param func: function working on the subelement
+    :return: the generator object
+    """
+
     if not isinstance(seq, (list, tuple, set)):
         raise TypeError('Flattened data could only be one of <list>, <tuple> or <set>')
     for sub in seq:
