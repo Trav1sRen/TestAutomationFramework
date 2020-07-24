@@ -28,3 +28,8 @@ def flat_map(seq, func=None):
                     yield from flat_map(r)  # flatten the return value of func as well
                 except TypeError:
                     yield r
+
+
+def get_defined_cls_attrs(cls):
+    d = cls.__dict__
+    return (d[key] for key in filter(lambda k: not k.startswith('__'), d))
