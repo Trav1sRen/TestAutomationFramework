@@ -3,7 +3,7 @@ from collections.abc import Iterable
 from .api_utils import CustomDict
 from .api_utils import encoding, var_dict, proj_root
 from .api_utils import typeassert, xml2dict, validate_schema
-from .web_utils import check_os, _fluent_wait, web_fluent_wait, ALLOWED_LOC_TYPES
+from .web_utils import check_os, fluent_wait, web_fluent_wait, non_private_vars, ALLOWED_LOC_TYPES
 
 
 def flat_map(seq, func=None):
@@ -28,8 +28,3 @@ def flat_map(seq, func=None):
                     yield from flat_map(r)  # flatten the return value of func as well
                 except TypeError:
                     yield r
-
-
-def get_defined_cls_attrs(cls):
-    d = cls.__dict__
-    return (d[key] for key in filter(lambda k: not k.startswith('__'), d))

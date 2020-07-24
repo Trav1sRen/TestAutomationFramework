@@ -5,10 +5,16 @@ from selenium.common.exceptions import NoSuchElementException, StaleElementRefer
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-ALLOWED_LOC_TYPES = list(By.__dict__.values())[2:-2]  # Supported locator types
+
+def non_private_vars(cls):
+    d = cls.__dict__
+    return (d[key] for key in filter(lambda k: not k.startswith('__'), d))
 
 
-def _fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
+ALLOWED_LOC_TYPES = non_private_vars(By)
+
+
+def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
@@ -44,10 +50,10 @@ def check_os():
         return 'win', '.exe'
 
 
-def web_wait_decorator(func):
+def _webwait(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-        sel_type = kwargs['sel_type']
+        sel_type = kwargs.get('sel_type', By.CSS_SELECTOR)
         if sel_type not in ALLOWED_LOC_TYPES:
             raise ValueError('Unknown locator type %s' % sel_type)
 
@@ -56,4 +62,4 @@ def web_wait_decorator(func):
     return wrapper
 
 
-web_fluent_wait = web_wait_decorator(_fluent_wait)
+web_fluent_wait = _webwait(fluent_wait)
