@@ -1,3 +1,4 @@
+import inspect
 from collections.abc import Iterable
 
 from .api_utils import CustomDict
@@ -28,3 +29,12 @@ def flat_map(seq, func=None):
                     yield from flat_map(r)  # flatten the return value of func as well
                 except TypeError:
                     yield r
+
+
+def inject_sig(func, wrapper, *args, **kwargs):
+    """ Add extra param into wrapped func's signature """
+
+    sig = inspect.signature(func)
+    parms = list(sig.parameters.values())
+    parms.append(inspect.Parameter(*args, **kwargs))
+    wrapper.__signature__ = sig.replace(parameters=parms)
