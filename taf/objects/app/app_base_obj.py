@@ -13,7 +13,7 @@ def webview_support(func):
 
     @wraps(func)
     def wrapper(*args, webview=False, **kwargs):
-        if not webview:
+        if webview:
             i = [x.strip() for x in re.match(
                 r'\((.*?)\)', str(signature(func))).group(1).split(',')].index('name')
 
