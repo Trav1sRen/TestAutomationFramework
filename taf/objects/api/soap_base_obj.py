@@ -1,4 +1,6 @@
-from taf.utils import typeassert, CustomDict, xml2dict
+from functools import partial
+
+from taf.utils import typeassert, CustomDict, xml2dict, cannot_be_instantiated
 from . import APIBaseObject
 
 
@@ -6,10 +8,7 @@ class SoapBaseObject(APIBaseObject):
     default_headers = {'Content-Type': 'text/xml; charset=UTF-8',
                        'SOAPAction': 'http://schemas.xmlsoap.org/soap/envelope'}
 
-    def __new__(cls, *args, **kwargs):
-        if cls is SoapBaseObject:
-            raise TypeError('Cannot directly instantiate %s' % cls)
-        return object.__new__(cls)
+    __new__ = partial(cannot_be_instantiated, name='SoapBaseObject')
 
     @typeassert(rs_body=str)
     def load_client_response(self, rs_body):

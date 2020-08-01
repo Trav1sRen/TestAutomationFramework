@@ -3,22 +3,19 @@ import logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-from functools import reduce
+from functools import reduce, partial
 import re
 import json
 from json.decoder import JSONDecodeError
 
 from lxml.etree import XMLSyntaxError
 
-from taf.utils import typeassert, CustomDict, xml2dict
+from taf.utils import typeassert, CustomDict, xml2dict, cannot_be_instantiated
 from . import APIBaseObject
 
 
 class RestBaseObject(APIBaseObject):
-    def __new__(cls, *args, **kwargs):
-        if cls is RestBaseObject:
-            raise TypeError('Cannot directly instantiate %s' % cls)
-        return object.__new__(cls)
+    __new__ = partial(cannot_be_instantiated, name='RestBaseObject')
 
     def unflatten_json(self, rq_dict):
         """

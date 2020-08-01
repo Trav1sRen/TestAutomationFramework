@@ -2,31 +2,36 @@ import sys
 
 from appium import webdriver
 
+from taf.clients import CommonDriverOps
 from taf.utils.app_utils import AndroidDevices
 
 
-class AndroidBaseClient:
-    driver = None  # Initialized andriod driver
+class AndroidBaseClient(CommonDriverOps):
+    def __init__(self, *args, **kwargs):
+        """ Initialize the Android driver """
 
-    desired_caps = {}  # Desired capabilities
+        self.devices = AndroidDevices()  # Instance of connected Android devices
 
-    devices = AndroidDevices()  # Instance of connected Android devices
+        self.driver = self._init_android_driver(*args, **kwargs)
 
-    def init_android_driver(self, apk_name, device_index=0, port=4723, automation_name='UiAutomator2', auto_grant=True):
-        self.desired_caps['platformName'] = 'Android'
-        self.desired_caps['platformVersion'] = self.devices.versions[device_index]
-        self.desired_caps['udid'] = self.devices.udids[device_index]
-        self.desired_caps['app'] = sys.path[1] + '/apk/%s.apk' % apk_name
+        super(CommonDriverOps, self).__init__(self.driver)
+
+    def _init_android_driver(self, apk_name, device_index=0, port=4723, automation_name='UiAutomator2', auto_grant=True,
+                             **extra_caps):
+
+        desired_caps = {'platformName': 'Android',
+                        'platformVersion': self.devices.versions[device_index],
+                        'udid': self.devices.udids[device_index],
+                        'app': sys.path[1] + '/apk/%s.apk' % apk_name
+                        }  # Desired capabilities
 
         if auto_grant is True:
-            self.desired_caps['autoGrantPermissions'] = auto_grant
+            desired_caps['autoGrantPermissions'] = auto_grant
 
         if automation_name != 'UiAutomator2':
-            self.desired_caps['automationName'] = automation_name
+            desired_caps['automationName'] = automation_name
 
-        self.driver = webdriver.Remote('http://localhost:%s/wd/hub' % port, self.desired_caps)
+        if extra_caps:
+            desired_caps.update(extra_caps)  # inject new caps if needed
 
-    def update_desired_caps(self, **kwargs):
-        """ Use this function to add special caps """
-        for key, val in kwargs.items():
-            self.desired_caps[key] = val
+        return webdriver.Remote('http://localhost:%s/wd/hub' % port, desired_caps)

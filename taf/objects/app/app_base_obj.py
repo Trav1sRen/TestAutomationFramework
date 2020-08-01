@@ -1,10 +1,10 @@
 import inspect
 import re
-from functools import wraps
+from functools import wraps, partial
 from inspect import signature
 
 from taf.objects.web import PageBaseObject
-from taf.utils import inject_sig
+from taf.utils import inject_sig, cannot_be_instantiated
 from taf.utils.app_utils import ALLOWED_MOBILE_LOC_TYPES
 
 
@@ -29,10 +29,7 @@ def webview_support(func):
 class AppBaseObject(PageBaseObject):
     _allowed_locs = ALLOWED_MOBILE_LOC_TYPES
 
-    def __new__(cls, *args, **kwargs):
-        if cls is AppBaseObject:
-            raise TypeError('Cannot directly instantiate %s' % cls)
-        return object.__new__(cls)
+    __new__ = partial(cannot_be_instantiated, name='AppBaseObject')
 
     @webview_support
     def _set_loc(self, name, loc, loc_type):

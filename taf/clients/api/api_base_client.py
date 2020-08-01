@@ -1,3 +1,8 @@
+from functools import partial
+
+from taf.utils import cannot_be_instantiated
+
+
 class APIBaseClient:
     rs_body = ''  # response str
 
@@ -5,7 +10,4 @@ class APIBaseClient:
 
     verify_ssl = False  # control whether we verify the server's TLS certificate
 
-    def __new__(cls, *args, **kwargs):
-        if cls is APIBaseClient:
-            raise TypeError('Cannot directly instantiate %s' % cls)
-        return object.__new__(cls)
+    __new__ = partial(cannot_be_instantiated, name='APIBaseClient')

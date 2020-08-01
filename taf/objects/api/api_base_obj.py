@@ -1,10 +1,10 @@
 import json
 import re
+from functools import partial
 
 import lxml.etree as et
 
-from taf.utils import typeassert, CustomDict, xml2dict
-from taf.utils import var_dict, proj_root, encoding
+from taf.utils import typeassert, CustomDict, xml2dict, var_dict, proj_root, encoding, cannot_be_instantiated
 
 
 class APIBaseObject:
@@ -20,10 +20,7 @@ class APIBaseObject:
 
     rq_dict, rs_dict = {}, {}  # parsed from rq_body and rs_body
 
-    def __new__(cls, *args, **kwargs):
-        if cls is APIBaseObject:
-            raise TypeError('Cannot directly instantiate %s' % cls)
-        return object.__new__(cls)
+    __new__ = partial(cannot_be_instantiated, name='APIBaseObject')
 
     def __init__(self, env, rq_name=None):
         with open(proj_root + '/env/globals.json') as f1:

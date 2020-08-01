@@ -7,23 +7,29 @@ import re
 import sys
 import time
 from datetime import datetime
-from collections.abc import Iterable, Sequence
+from collections.abc import Sequence
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
-from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.proxy import Proxy, ProxyType
 
-from taf.utils import proj_root, check_os, web_fluent_wait
+from taf.utils import proj_root, check_os, web_fluent_wait, UNSUPPORTED_TYPE
+from taf.clients import CommonDriverOps
 
 
-class WebBaseClient:
-    driver = None  # initialized driver
+class WebBaseClient(CommonDriverOps):
+    def __init__(self, *args, **kwargs):
+        """ Initialize the web driver """
 
-    def init_driver(self, browser, by_proxy='', headless=False, accept_untrusted_certs=True, window_width=1440,
-                    window_height=900, window_maximized=False):
+        self.driver = self._init_web_driver(*args, **kwargs)
+
+        super(WebBaseClient, self).__init__(self.driver)
+
+    @staticmethod
+    def _init_web_driver(browser, by_proxy='', headless=False, accept_untrusted_certs=True, window_width=1440,
+                         window_height=900, window_maximized=False):
         """
         Initialize the web driver for various browser type
         :param browser: browser type
@@ -33,6 +39,7 @@ class WebBaseClient:
         :param window_width: width of initialized driver window
         :param window_height: height of initialized driver window
         :param window_maximized: If maximizing the driver window
+        :return initialized web driver
         """
 
         os = check_os()
@@ -52,7 +59,7 @@ class WebBaseClient:
             else:
                 chrome_options.add_argument('--start-maximized')
 
-            self.driver = webdriver.Chrome(executable_path=exe_path, options=chrome_options)
+            return webdriver.Chrome(executable_path=exe_path, options=chrome_options)
 
         if browser == 'Firefox':
             exe_path = proj_root + '/drivers/%s/geckodriver%s' % os
@@ -75,7 +82,7 @@ class WebBaseClient:
             else:
                 ff_options.add_argument('--start-maximized')
 
-            self.driver = webdriver.Firefox(executable_path=exe_path, options=ff_options)
+            return webdriver.Firefox(executable_path=exe_path, options=ff_options)
 
     def nevigate_to(self, url):
         """
@@ -130,60 +137,6 @@ class WebBaseClient:
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[index])
 
-    def input_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val, bundle=False):
-        """
-        Send value(s) to input box(es)
-        :param locator: element locator
-        :param locators: container of element locators
-        :param sel_type: locator type
-        :param val: input value(s), could be a sequence
-        :param bundle: flag to decide if bundle of values to be sent sequentially
-        """
-
-        if bundle:
-            if not (isinstance(locators, Iterable) and isinstance(val, Sequence)):
-                raise ValueError(
-                    'Parameter <locators> and <val> should iterable if <bundle> flag is positive')
-
-            try:
-                for i, (loc, sel) in enumerate(dict(locators).items()):
-                    self.input_action(loc, sel_type=sel, val=val[i])
-            except TypeError:
-                for i, loc in enumerate(locators):
-                    self.input_action(loc, sel_type=sel_type, val=val[i])
-        else:
-            web_fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
-
-    def click_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
-        """
-        Click the web element, double click is optional
-        :param locator: element locator
-        :param locators: container of element locators
-        :param sel_type: locator type
-        :param double: flag to decide if double-clicking the element
-        :param bundle: flag to decide if bundle of elements to be clicked sequentially
-        """
-
-        if bundle:
-            if not isinstance(locators, Iterable):
-                raise ValueError('Parameter <locators> should be an iterable if <bundle> flag is positive')
-
-            try:
-                for loc, sel in dict(locators).items():
-                    self.click_action(loc, sel_type=sel, double=double)
-            except TypeError:
-                for loc in locators:
-                    self.click_action(loc, sel_type=sel_type, double=double)
-        else:
-            element = web_fluent_wait(self.driver, locator, sel_type=sel_type)
-
-            if not element.is_selected():
-                if not double:
-                    element.click()
-                else:
-                    action_chains = ActionChains(self.driver)
-                    action_chains.double_click(element).perform()
-
     def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, find_single=True, level='document',
                        lines=False):
         """
@@ -203,13 +156,15 @@ class WebBaseClient:
         if level == 'element':
             if not re.match(r'arguments\[\d+\]', script):
                 raise ValueError(err_msg)
-            found = web_fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
-            self.driver.execute_script(script, found)
+            result = web_fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
+            self.driver.execute_script(script, result)
         else:
             if lines:
                 if not isinstance(script, Sequence):
-                    raise ValueError('Parameter <script> should be a sequence if <lines> flag is positive')
+                    raise TypeError(UNSUPPORTED_TYPE % (type(script), 'script'))
 
+                script = [sc.strip() for sc in script.split(';') if len(
+                    sc) != 0 and not sc.isspace()] if isinstance(script, str) else script
                 for line in script:
                     self.execute_script(line)
 
@@ -235,33 +190,3 @@ class WebBaseClient:
             except NoSuchElementException:
                 logger.warning('Could not locate element with visible text "%s", try with value attribute' % keyword)
                 select.select_by_value(keyword)
-
-    def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, expected_val,
-                          multi_assert=False):
-        """
-        Compare element text with expectation, comparing multiple texts is supported
-        :param locator: element locator
-        :param locators: container of element locators
-        :param sel_type: locator type
-        :param expected_val: expected text value(s), could be a sequence
-        :param multi_assert: flag to decide the multiple comparison
-        """
-
-        if multi_assert:
-            if not (isinstance(locators, Iterable) and isinstance(expected_val, Sequence)):
-                raise ValueError(
-                    'Parameter <locators> and <expected_val> should be iterable if <multi_assert> flag is positive')
-
-            try:
-                actual = map(lambda ele: ele.text,
-                             (web_fluent_wait(self.driver, loc, sel_type=sel) for loc, sel in dict(locators).items()))
-            except TypeError:
-                actual = map(lambda ele: ele.text,
-                             (web_fluent_wait(self.driver, loc, sel_type=sel_type) for loc in locators))
-
-        else:
-            actual = web_fluent_wait(self.driver, locator, sel_type=sel_type).text
-
-        logger.info('Actual text value(s): %s' % list(actual))
-        logger.info('Expected text value(s): %s' % list(expected_val))
-        assert list(actual) == list(expected_val)

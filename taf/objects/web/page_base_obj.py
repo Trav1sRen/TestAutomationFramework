@@ -1,4 +1,6 @@
-from taf.utils import ALLOWED_LOC_TYPES
+from functools import partial
+
+from taf.utils import ALLOWED_LOC_TYPES, cannot_be_instantiated
 
 
 class PageBaseObject:
@@ -6,10 +8,7 @@ class PageBaseObject:
 
     _allowed_locs = ALLOWED_LOC_TYPES
 
-    def __new__(cls, *args, **kwargs):
-        if cls is PageBaseObject:
-            raise TypeError('Cannot directly instantiate %s' % cls)
-        return object.__new__(cls)
+    __new__ = partial(cannot_be_instantiated, name='PageBaseObject')
 
     def _set_loc(self, name, loc, loc_type):
         """

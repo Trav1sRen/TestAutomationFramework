@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from .api_utils import CustomDict
 from .api_utils import encoding, var_dict, proj_root
 from .api_utils import typeassert, xml2dict, validate_schema
+from .err_msg import *
 from .web_utils import check_os, fluent_wait, web_fluent_wait, non_private_vars, ALLOWED_LOC_TYPES
 
 
@@ -38,3 +39,15 @@ def inject_sig(func, wrapper, *args, **kwargs):
     parms = list(sig.parameters.values())
     parms.append(inspect.Parameter(*args, **kwargs))
     wrapper.__signature__ = sig.replace(parameters=parms)
+
+
+def cannot_be_instantiated(cls, *args, name=None, **kwargs):
+    """ method to prevent cls from being instantiated """
+
+    if name is None:
+        raise TypeError('<name> param should be re-assigned')
+
+    if cls.__name__ == name:
+        raise TypeError(CANNOT_BE_INSTANTIATED % cls)
+
+    return object.__new__(cls)
