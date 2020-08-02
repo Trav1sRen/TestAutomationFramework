@@ -20,22 +20,15 @@ class CommonDriverOps:
 
         self.driver = driver
 
-    def input_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val, bundle=False):
-        """
-        Send value(s) to input box(es)
-        :param locator: element locator
-        :param locators: container of element locators
-        :param sel_type: locator type
-        :param val: input value(s), could be a tuple or list
-        :param bundle: flag to decide if bundle of values to be sent sequentially
-        """
+    def input_val(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val, bundle=False):
+        """ Send value(s) to input box(es) """
 
         if not isinstance(val, Sequence):
             raise TypeError(UNSUPPORTED_TYPE % (type(val), 'val'))
 
         if bundle:
             if isinstance(val, str):
-                raise TypeError(UNSUPPORTED_TYPE % (type(val), 'val'))
+                val = [s.strip() for s in val.split(',')]
 
             if isinstance(locators, dict):
                 for i, (loc, sel) in enumerate(locators.items()):
@@ -49,15 +42,8 @@ class CommonDriverOps:
         else:
             web_fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
 
-    def click_action(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
-        """
-        Click the web element, double click is optional
-        :param locator: element locator
-        :param locators: container of element locators
-        :param sel_type: locator type
-        :param double: flag to decide if double-clicking the element
-        :param bundle: flag to decide if bundle of elements to be clicked sequentially
-        """
+    def click_element(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
+        """ Click the web element, double click is optional """
 
         if bundle:
             if isinstance(locators, dict):
@@ -81,14 +67,7 @@ class CommonDriverOps:
 
     def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, expected_val,
                           multi_assert=False):
-        """
-        Compare element text with expectation, comparing multiple texts is supported
-        :param locator: element locator
-        :param locators: container of element locators
-        :param sel_type: locator type
-        :param expected_val: expected text value(s), could be a tuple or list
-        :param multi_assert: flag to decide the multiple comparison
-        """
+        """ Compare element text with expectation, comparing multiple texts is supported """
 
         if multi_assert:
             if isinstance(locators, dict):

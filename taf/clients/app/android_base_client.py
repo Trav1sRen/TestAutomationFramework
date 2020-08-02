@@ -35,3 +35,16 @@ class AndroidBaseClient(CommonDriverOps):
             desired_caps.update(extra_caps)  # inject new caps if needed
 
         return webdriver.Remote('http://localhost:%s/wd/hub' % port, desired_caps)
+
+    def switch_to_context(self, webview=True):
+        """ Switch to the webview or back to native view """
+
+        contexts = self.driver.contexts
+
+        if len(contexts) == 1:
+            raise RuntimeError('"WebView.setWebContentsDebuggingEnabled(true)" is not set in app source code')
+
+        if webview:
+            self.driver.switch_to.context(list(filter(lambda con: con.startswith('WEBVIEW_'), contexts))[0])
+        else:
+            self.driver.switch_to.context(list(filter(lambda con: con == 'NATIVE_APP', contexts))[0])
