@@ -32,10 +32,10 @@ class CommonDriverOps:
 
             if isinstance(locators, dict):
                 for i, (loc, sel) in enumerate(locators.items()):
-                    self.input_action(loc, sel_type=sel, val=val[i])
+                    self.input_val(loc, sel_type=sel, val=val[i])
             elif isinstance(locators, (tuple, list)):
                 for i, loc in enumerate(locators):
-                    self.input_action(loc, sel_type=sel_type, val=val[i])
+                    self.input_val(loc, sel_type=sel_type, val=val[i])
             else:
                 raise TypeError(UNSUPPORTED_TYPE % (type(locators), 'locators'))
 
@@ -48,10 +48,10 @@ class CommonDriverOps:
         if bundle:
             if isinstance(locators, dict):
                 for loc, sel in locators.items():
-                    self.click_action(loc, sel_type=sel, double=double)
+                    self.click_element(loc, sel_type=sel, double=double)
             elif isinstance(locators, (tuple, list)):
                 for loc in locators:
-                    self.click_action(loc, sel_type=sel_type, double=double)
+                    self.click_element(loc, sel_type=sel_type, double=double)
             else:
                 raise TypeError(UNSUPPORTED_TYPE % (type(locators), 'locators'))
 
