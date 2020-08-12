@@ -17,7 +17,7 @@ class SoapBaseObject(APIBaseObject):
         :param rs_body: <rs_body> attr in SoapBaseClient
         """
 
-        self.rs_dict = CustomDict(xml2dict(rs_body, strip_ns=True))
+        self._rs_dict = CustomDict(xml2dict(rs_body, strip_ns=True))
 
     def process_response(self):
         raise NotImplementedError('You must customize the logic when processing the response')

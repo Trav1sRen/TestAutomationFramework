@@ -11,5 +11,6 @@ setup(
     include_package_data=True,
     platforms="any",
     install_requires=[
-        'lxml', 'requests', 'xmltodict', 'selenium', 'Appium-Python-Client']  # Rmb to add new dependencies into here
+        'lxml', 'requests', 'xmltodict',
+        'selenium', 'Appium-Python-Client']  # Rmb to add new dependencies into here
 )

@@ -18,8 +18,6 @@ class APIBaseObject:
 
     rq_body, rs_body = '', ''
 
-    rq_dict, rs_dict = {}, {}  # parsed from rq_body and rs_body
-
     __new__ = partial(cannot_be_instantiated, name='APIBaseObject')
 
     def __init__(self, env, rq_name=None):
@@ -35,9 +33,11 @@ class APIBaseObject:
 
         # name of root node when request data is in xml format
         if rq_name:
-            self.rq_name = rq_name
+            self._rq_name = rq_name
 
         self._flat_dict = {}  # flat dict parsed from the json file
+
+        self._rq_dict, self._rs_dict = {}, {}  # parsed from rq_body and rs_body
 
     @typeassert(ns_attrs=(type(None), dict), nsmap=(type(None), dict), attrs=dict)
     def construct_xml(self, soap=False, ns_attrs=None, nsmap=None, **attrs):
@@ -60,7 +60,7 @@ class APIBaseObject:
         if nsmap is None:
             nsmap = {}
 
-        root = et.Element(self.rq_name, attrib, nsmap, **attrs)
+        root = et.Element(self._rq_name, attrib, nsmap, **attrs)
         root = self._flatjson2xml(root, self._flat_dict, nsmap)
 
         raw = et.tostring(root).decode(encoding)
@@ -178,6 +178,6 @@ class APIBaseObject:
         """ Convert request str data to dict """
 
         try:
-            self.rq_dict = CustomDict(xml2dict(self.rq_body, strip_ns=True))
+            self._rq_dict = CustomDict(xml2dict(self.rq_body, strip_ns=True))
         except et.XMLSyntaxError:
-            self.rq_dict = CustomDict(json.loads(self.rq_body))
+            self._rq_dict = CustomDict(json.loads(self.rq_body))

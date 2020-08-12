@@ -65,10 +65,10 @@ class RestBaseObject(APIBaseObject):
 
         self.rs_body = rs_body
         try:
-            self.rs_dict = CustomDict(json.loads(rs_body))
+            self._rs_dict = CustomDict(json.loads(rs_body))
         except JSONDecodeError:
             try:
-                self.rs_dict = CustomDict(xml2dict(rs_body))
+                self._rs_dict = CustomDict(xml2dict(rs_body))
             except XMLSyntaxError:
                 logger.warning('Response str could be neither parsed to json nor xml obj')
 
