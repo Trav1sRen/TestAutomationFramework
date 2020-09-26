@@ -10,7 +10,7 @@ class SoapBaseObject(APIBaseObject):
 
     __new__ = partial(cannot_be_instantiated, name='SoapBaseObject')
 
-    @typeassert(rs_body=str)
+    @typeassert(str)
     def load_client_response(self, rs_body):
         """
         Load response from APIBaseClient instance and parse to dict

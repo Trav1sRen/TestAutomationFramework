@@ -1,17 +1,16 @@
-import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
-from functools import reduce, partial
-import re
 import json
+import logging
+import re
+from functools import reduce, partial
 from json.decoder import JSONDecodeError
 
 from lxml.etree import XMLSyntaxError
 
 from taf.utils import typeassert, CustomDict, xml2dict, cannot_be_instantiated
 from . import APIBaseObject
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class RestBaseObject(APIBaseObject):
@@ -24,7 +23,7 @@ class RestBaseObject(APIBaseObject):
         """
 
         tmp = 0
-        patt = re.compile(r'(\w+)\[(\d+)\]')
+        patt = re.compile(r'(\w+)\[(\d+)]')
 
         def _traversal(o, k):
             m = re.match(patt, k)
@@ -56,7 +55,7 @@ class RestBaseObject(APIBaseObject):
 
         self.rq_body = json.dumps(output, indent=4)  # for pretty print
 
-    @typeassert(rs_body=str)
+    @typeassert(str)
     def load_client_response(self, rs_body):
         """
         Load response from APIBaseClient instance and parse to dict

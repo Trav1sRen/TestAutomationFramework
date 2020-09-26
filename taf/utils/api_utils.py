@@ -35,9 +35,8 @@ def generate_auth(username, pwd):
 
 
 def typeassert(*tyargs, **ty_kwargs):
-    """
-    Decorator to implement the type check upon arguments
-    """
+    """ Decorator to implement the type check upon arguments
+    (no need to consider about the 'self' parameter) """
 
     def decorator(func):
         sig = signature(func)

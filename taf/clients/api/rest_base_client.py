@@ -13,7 +13,7 @@ from taf.utils import typeassert
 
 
 class RestBaseClient(APIBaseClient):
-    @typeassert(rq_body=str, params=(type(None), dict))
+    @typeassert(rq_body=str, params=dict)
     def send_req(self, method, url, headers, rq_body=None, params=None):
         if not self.verify_ssl:
             requests.packages.urllib3.disable_warnings(InsecureRequestWarning)

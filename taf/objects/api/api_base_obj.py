@@ -39,7 +39,7 @@ class APIBaseObject:
 
         self._rq_dict, self._rs_dict = {}, {}  # parsed from rq_body and rs_body
 
-    @typeassert(ns_attrs=(type(None), dict), nsmap=(type(None), dict), attrs=dict)
+    @typeassert(ns_attrs=dict, nsmap=dict)
     def construct_xml(self, soap=False, ns_attrs=None, nsmap=None, **attrs):
         """ Assemble the request xml body """
 
@@ -133,7 +133,7 @@ class APIBaseObject:
         """
         self.default_headers.update(self._load_variables(extras))
 
-    @typeassert(kwargs=dict)
+    @typeassert(dict)
     def unpack_json(self, kwargs):
         """
         Load json body from files
