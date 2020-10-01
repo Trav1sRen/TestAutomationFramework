@@ -1,15 +1,15 @@
 import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
+from xml import parsers
+from xml.dom import minidom
 
 import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
-from xml import parsers
-from xml.dom import minidom
-from .api_base_client import APIBaseClient
 from taf.utils import typeassert
+from .api_base_client import APIBaseClient
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class RestBaseClient(APIBaseClient):
@@ -45,16 +45,4 @@ class RestBaseClient(APIBaseClient):
             response = requests.request(method, url, headers=headers, data=rq_body, verify=self.verify_ssl)
         logger.info('***********************  REQUEST END  ***********************')
 
-        self.status_code = response.status_code
-        logger.info('Response Status Code: [' + str(response.status_code) + ']')
-        text = response.text
-
-        try:
-            reparsed = minidom.parseString(text)
-            logger.info('Response Body: \n' + reparsed.toprettyxml(indent="\t"))
-
-        except parsers.expat.ExpatError:
-            # response str is in json or other format
-            logger.info('Response Body: \n' + text)
-
-        self.rs_body = text
+        self.output_response(response)

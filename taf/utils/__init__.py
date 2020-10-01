@@ -41,7 +41,7 @@ def inject_sig(func, wrapper, *args, **kwargs):
     wrapper.__signature__ = sig.replace(parameters=parms)
 
 
-def cannot_be_instantiated(cls, *args, name=None, **kwargs):
+def cannot_be_instantiated(cls, name=None):
     """ method to prevent cls from being instantiated """
 
     if name is None:

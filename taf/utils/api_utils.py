@@ -1,16 +1,14 @@
-import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 import base64
+import logging
+import sys
+from functools import wraps
 from inspect import signature
 
 import lxml.etree as et
 import xmltodict
-import sys
 
-from functools import wraps
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 # default encoding
 encoding = 'utf-8'

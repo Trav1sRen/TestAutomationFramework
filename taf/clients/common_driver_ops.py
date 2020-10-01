@@ -1,15 +1,14 @@
 import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 from collections.abc import Sequence
+from functools import partial
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 
 from taf.utils import web_fluent_wait, UNSUPPORTED_TYPE, cannot_be_instantiated
-from functools import partial
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class CommonDriverOps:

@@ -1,22 +1,21 @@
 import logging
-
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-logger = logging.getLogger(__name__)
-
 import re
 import sys
 import time
-from datetime import datetime
 from collections.abc import Sequence
+from datetime import datetime
 
 from selenium import webdriver
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
 from selenium.webdriver.common.proxy import Proxy, ProxyType
+from selenium.webdriver.support.ui import Select
 
-from taf.utils import proj_root, check_os, web_fluent_wait, UNSUPPORTED_TYPE
 from taf.clients import CommonDriverOps
+from taf.utils import proj_root, check_os, web_fluent_wait, UNSUPPORTED_TYPE
+
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(__name__)
 
 
 class WebBaseClient(CommonDriverOps):
@@ -154,7 +153,7 @@ class WebBaseClient(CommonDriverOps):
 
         err_msg = 'Script expression has no valid pattern'
         if level == 'element':
-            if not re.match(r'arguments\[\d+\]', script):
+            if not re.match(r'arguments\[\d+]', script):
                 raise ValueError(err_msg)
             result = web_fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
             self.driver.execute_script(script, result)

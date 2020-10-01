@@ -1,4 +1,4 @@
-class ApiSteps:
+class ApiEntrance:
     inst = None
 
     def init_test_obj(self, module_name, cls_name, *args, **kwargs):
