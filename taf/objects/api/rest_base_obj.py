@@ -16,10 +16,9 @@ logger = logging.getLogger(__name__)
 class RestBaseObject(APIBaseObject):
     __new__ = partial(cannot_be_instantiated, name='RestBaseObject')
 
-    def unflatten_json(self, rq_dict):
+    def unflatten_json(self):
         """
         Convert the flat json to nested json
-        :param rq_dict: dict parsed from the json file
         """
 
         tmp = 0
@@ -41,7 +40,7 @@ class RestBaseObject(APIBaseObject):
                     return o.setdefault(k, {})
 
         output = {}
-        for key, val in rq_dict.items():
+        for key, val in self._flat_dict.items():
             path = key.split(self.delimiter)
 
             if re.match(patt, path[-1]):

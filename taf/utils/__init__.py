@@ -1,3 +1,4 @@
+import configparser
 import inspect
 from collections.abc import Iterable
 
@@ -6,6 +7,10 @@ from .api_utils import encoding, var_dict, proj_root
 from .api_utils import typeassert, xml2dict, validate_schema
 from .err_msg import *
 from .web_utils import check_os, fluent_wait, web_fluent_wait, non_private_vars, ALLOWED_LOC_TYPES
+
+# Reader of project config file (.ini)
+config = configparser.ConfigParser()
+config.read(proj_root + '/test_config.ini')
 
 
 def flat_map(seq, func=None):

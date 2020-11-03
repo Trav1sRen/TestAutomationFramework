@@ -4,37 +4,57 @@ from platform import system
 from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
+from ..utils import typeassert, config
 
 
 def non_private_vars(cls):
     d = cls.__dict__
-    return (d[key] for key in filter(lambda k: not k.startswith('__'), d))
+    return [d[key] for key in filter(lambda k: not k.startswith('__'), d)]
 
 
 ALLOWED_LOC_TYPES = non_private_vars(By)
 
 
-def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, find_single=True, timeout=10, poll_frequency=0.5):
+@typeassert(unique=bool)
+def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique=True):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
     :param selector: locator of the element to be found
     :param sel_type: locator type (recommend to use By class variable)
-    :param find_single: flag to decide if returning single element other than list of elements
-    :param timeout: time limit of element locating, raise TimeoutException if beyond the limit
-    :param poll_frequency: time frequency of attempts to obtain
+    :param unique: flag to decide if returning single element other than list of elements
     :return: obtained web element(s)
     """
 
     if isinstance(selector, tuple):  # Return value of <get_loc> in page object
         selector, sel_type = selector
 
-    wait = WebDriverWait(driver, timeout, poll_frequency, (NoSuchElementException, StaleElementReferenceException))
+    try:
+        timeout = int(config['TEST_CONTROL']['WAIT_TIME_OUT'])
+    except KeyError:
+        timeout = 30
 
-    if find_single:
-        return wait.until(lambda dri: dri.find_element(sel_type, selector))
+    try:
+        poll_frequency = int(config['TEST_CONTROL']['POLL_FREQUENCY'])
+    except KeyError:
+        poll_frequency = 1
+    wait = WebDriverWait(driver, timeout, poll_frequency, (StaleElementReferenceException,))
+
+    if unique:
+        def _expected(dri):
+            ele = dri.find_element(sel_type, selector)
+            return ele if ele.is_displayed() else False
+
+        return wait.until(_expected)
     else:
-        return wait.until(lambda dri: dri.find_elements(sel_type, selector))
+        def _expected(dri):
+            ele_arr = dri.find_elements(sel_type, selector)
+            for ele in ele_arr:
+                if not ele.is_displayed():
+                    return False
+            return ele_arr
+
+        return wait.until(_expected)
 
 
 def check_os():
@@ -56,7 +76,6 @@ def _webwait(func):
         sel_type = kwargs.get('sel_type', By.CSS_SELECTOR)
         if sel_type not in ALLOWED_LOC_TYPES:
             raise ValueError('Unknown locator type %s' % sel_type)
-
         return func(*args, **kwargs)
 
     return wrapper

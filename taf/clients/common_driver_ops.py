@@ -1,19 +1,16 @@
 import logging
 from collections.abc import Sequence
-from functools import partial
 
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.common.by import By
 
-from taf.utils import web_fluent_wait, UNSUPPORTED_TYPE, cannot_be_instantiated
+from taf.utils import web_fluent_wait, UNSUPPORTED_TYPE
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
 class CommonDriverOps:
-    __new__ = partial(cannot_be_instantiated, name='CommonDriverOps')
-
     def __init__(self, driver):
         """ Load initialized web or app driver from subclass """
 

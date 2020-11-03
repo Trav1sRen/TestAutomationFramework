@@ -16,8 +16,20 @@ encoding = 'utf-8'
 # container for temporary variables
 var_dict = {}
 
+
+def is_debug():
+    # Judge if running under the debug mode
+    gettrace = getattr(sys, 'gettrace', None)
+    if gettrace is None:
+        return False
+    elif gettrace():
+        return True
+    else:
+        return False
+
+
 # Get rootpath of the project which uses the framework as dependency
-proj_root = sys.path[1]
+proj_root = sys.path[2] if is_debug() else sys.path[1]
 
 
 def generate_auth(username, pwd):
