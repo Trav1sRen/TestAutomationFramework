@@ -1,10 +1,16 @@
+import configparser
 from functools import wraps
 from platform import system
 
-from selenium.common.exceptions import NoSuchElementException, StaleElementReferenceException
+from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
-from ..utils import typeassert, config
+
+from ..utils import typeassert, proj_root
+
+# Reader of project config file (.ini)
+config = configparser.ConfigParser()
+config.read(proj_root + '/test_config.ini')
 
 
 def non_private_vars(cls):
@@ -15,14 +21,13 @@ def non_private_vars(cls):
 ALLOWED_LOC_TYPES = non_private_vars(By)
 
 
-@typeassert(unique=bool)
-def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique=True):
+def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique_loc=True):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
     :param selector: locator of the element to be found
     :param sel_type: locator type (recommend to use By class variable)
-    :param unique: flag to decide if returning single element other than list of elements
+    :param unique_loc: flag to decide if returning single element other than list of elements
     :return: obtained web element(s)
     """
 
@@ -40,7 +45,7 @@ def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique=True):
         poll_frequency = 1
     wait = WebDriverWait(driver, timeout, poll_frequency, (StaleElementReferenceException,))
 
-    if unique:
+    if unique_loc:
         def _expected(dri):
             ele = dri.find_element(sel_type, selector)
             return ele if ele.is_displayed() else False

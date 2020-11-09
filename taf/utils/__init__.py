@@ -1,4 +1,3 @@
-import configparser
 import inspect
 from collections.abc import Iterable
 
@@ -7,10 +6,6 @@ from .api_utils import encoding, var_dict, proj_root
 from .api_utils import typeassert, xml2dict, validate_schema
 from .err_msg import *
 from .web_utils import check_os, fluent_wait, web_fluent_wait, non_private_vars, ALLOWED_LOC_TYPES
-
-# Reader of project config file (.ini)
-config = configparser.ConfigParser()
-config.read(proj_root + '/test_config.ini')
 
 
 def flat_map(seq, func=None):
@@ -46,8 +41,17 @@ def inject_sig(func, wrapper, *args, **kwargs):
     wrapper.__signature__ = sig.replace(parameters=parms)
 
 
-def cannot_be_instantiated(cls, name):
-    """ method to prevent cls from being instantiated """
+# noinspection PyUnusedLocal
+def cannot_be_instantiated(cls, name, *args, **kwargs):
+    """
+    Prevent cls from being instantiated if name matches
+    :param cls: class to be instantiated
+    :param name: if matching then raise TypeError
+    :param args: unused but to cater for different arguments
+    :param kwargs: unused but to cater for different arguments
+    :return: instance of the class
+    """
+
     if cls.__name__ == name:
         raise TypeError(CANNOT_BE_INSTANTIATED % cls)
 

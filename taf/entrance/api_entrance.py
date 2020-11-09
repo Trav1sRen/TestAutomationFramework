@@ -1,19 +1,22 @@
+from ..clients.api import SoapBaseClient
 from ..utils import typeassert
 
 
-def _init_test_obj(module_name, cls_name, *args, **kwargs):
-    module = __import__('src.objects.api.' + module_name, fromlist=[''])  # 'fromlist' arg is not an empty list
-    return getattr(module, cls_name)(*args, **kwargs)
+class ApiEntrance:
+    def __init__(self, module_name, cls_name, *args, **kwargs):
+        module = __import__('src.objects.api.' + module_name, fromlist=[''])  # 'fromlist' arg is not an empty list
+        self.api_obj = getattr(module, cls_name)(*args, **kwargs)
 
+    @typeassert(extra_headers=dict)
+    def dispatch_soap_request(self, verify_ssl=False, extra_headers=None, **xml_args):
+        self.api_obj.construct_xml(soap=True, **xml_args)
 
-@typeassert(soap=bool, xml=bool, xml_args=dict)
-def dispatch_request(module_name, cls_name, soap=False, xml=False, xml_args=None, *args, **kwargs):
-    api_obj = _init_test_obj(module_name, cls_name, *args, **kwargs)
+        extra_headers = extra_headers or {}
+        if extra_headers:
+            self.api_obj.append_headers(extra_headers)
 
-    if soap:
-        api_obj.construct_xml(True, **xml_args)
-    else:
-        if xml:
-            api_obj.construct_xml(False, **xml_args)
-        else:
-            api_obj.unflatten_json()
+        client = SoapBaseClient(verify_ssl=verify_ssl)
+        client.send_req(self.api_obj.url, self.api_obj.default_headers, self.api_obj.rq_body)
+
+        self.api_obj.load_client_response(client.rs_body)
+        self.api_obj.process_response()

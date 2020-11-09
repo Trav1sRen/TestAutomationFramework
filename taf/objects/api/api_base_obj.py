@@ -16,7 +16,7 @@ class APIBaseObject:
 
     soap_skin = ''  # overwritten by each API obj
 
-    rq_body, rs_body = '', ''
+    rq_body = ''  # assembled request body
 
     __new__ = partial(cannot_be_instantiated, name='APIBaseObject')
 

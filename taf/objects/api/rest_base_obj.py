@@ -61,7 +61,6 @@ class RestBaseObject(APIBaseObject):
         :param rs_body: <rs_body> attr in RestBaseClient
         """
 
-        self.rs_body = rs_body
         try:
             self._rs_dict = CustomDict(json.loads(rs_body))
         except JSONDecodeError:

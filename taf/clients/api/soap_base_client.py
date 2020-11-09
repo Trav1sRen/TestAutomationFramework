@@ -2,7 +2,7 @@ import logging
 from xml.dom import minidom
 
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
+
 
 from taf.utils import typeassert
 from .api_base_client import APIBaseClient
@@ -14,9 +14,6 @@ logger = logging.getLogger(__name__)
 class SoapBaseClient(APIBaseClient):
     @typeassert(rq_body=str)
     def send_req(self, url, headers, rq_body):
-        if not self.verify_ssl:
-            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
         logger.info('*********************** REQUEST START ***********************')
         logger.info('%s to <%s>' % ('POST', url))
         logger.info('Headers: ' + str(headers))

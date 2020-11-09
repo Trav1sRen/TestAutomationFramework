@@ -2,7 +2,8 @@ import logging
 from functools import partial
 from xml import parsers
 from xml.dom import minidom
-
+import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from taf.utils import cannot_be_instantiated
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -14,9 +15,18 @@ class APIBaseClient:
 
     status_code = int()  # response status code
 
-    verify_ssl = False  # control whether we verify the server's TLS certificate
-
     __new__ = partial(cannot_be_instantiated, name='APIBaseClient')
+
+    def __init__(self, *, verify_ssl=False):
+        """
+        Constructor of APIBaseClient
+        :param verify_ssl: control whether we verify the server's TLS certificate
+        """
+
+        self.verify_ssl = verify_ssl
+
+        if not verify_ssl:
+            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
     def output_response(self, response):
         self.status_code = response.status_code

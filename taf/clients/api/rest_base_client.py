@@ -3,7 +3,6 @@ from xml import parsers
 from xml.dom import minidom
 
 import requests
-from requests.packages.urllib3.exceptions import InsecureRequestWarning
 
 from taf.utils import typeassert
 from .api_base_client import APIBaseClient
@@ -15,10 +14,8 @@ logger = logging.getLogger(__name__)
 class RestBaseClient(APIBaseClient):
     @typeassert(rq_body=str, params=dict)
     def send_req(self, method, url, headers, rq_body=None, params=None):
-        if not self.verify_ssl:
-            requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
-
-        if not (rq_body or params is not None):
+        params = params or {}
+        if not (rq_body or params):
             raise ValueError('You must at least pass the post body or query params when sending the restful request')
 
         if rq_body and params:
