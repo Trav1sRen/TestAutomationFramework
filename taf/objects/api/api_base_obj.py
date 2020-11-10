@@ -4,7 +4,8 @@ from functools import partial
 
 import lxml.etree as et
 
-from taf.utils import typeassert, CustomDict, xml2dict, var_dict, proj_root, encoding, cannot_be_instantiated
+from taf.utils import typeassert, CustomDict, xml2dict, var_dict, proj_root, encoding, \
+    cannot_be_instantiated
 
 
 class APIBaseObject:
@@ -29,7 +30,8 @@ class APIBaseObject:
 
         # request url
         self.url = '/'.join(
-            (self._get_property_from_variables('BaseUrl'), self._get_property_from_variables('Context'), self.endpoint))
+            (self._get_property_from_variables('BaseUrl'),
+             self._get_property_from_variables('Context'), self.endpoint))
 
         # name of root node when request data is in xml format
         if rq_name:
@@ -37,7 +39,7 @@ class APIBaseObject:
 
         self._flat_dict = {}  # flat dict parsed from the json file
 
-        self._rq_dict, self._rs_dict = {}, {}  # parsed from rq_body and rs_body
+        self.rq_dict, self._rs_dict = {}, {}  # parsed from rq_body and rs_body
 
     @typeassert(ns_attrs=dict, nsmap=dict)
     def construct_xml(self, soap=False, ns_attrs=None, nsmap=None, **attrs):
@@ -45,7 +47,8 @@ class APIBaseObject:
 
         if soap:
             if not self.soap_skin:
-                raise ValueError('class variable "soap_skin" should be overwritten by str containing "%s"')
+                raise ValueError(
+                    'class variable "soap_skin" should be overwritten by str containing "%s"')
 
         attrib = {}
         if ns_attrs:
@@ -148,12 +151,14 @@ class APIBaseObject:
                 d.update(obj)
 
         self._flat_dict = self._load_variables(d)
+        return self
 
     def _load_variables(self, d):
         patt = r'{{(.*?)}}'
         return dict((k, v) for k, v in zip(
             d.keys(), (re.sub(
-                patt, lambda match: self._get_property_from_variables(match.group(1)), val) for val in d.values())))
+                patt, lambda match: self._get_property_from_variables(
+                    match.group(1)), val) for val in d.values())))
 
     def _get_property_from_variables(self, var_key):
         """
@@ -177,7 +182,7 @@ class APIBaseObject:
     def rq_str2dict(self):
         """ Convert request str data to dict """
 
-        try:
-            self._rq_dict = CustomDict(xml2dict(self.rq_body, strip_ns=True))
-        except et.XMLSyntaxError:
-            self._rq_dict = CustomDict(json.loads(self.rq_body))
+        if self.rq_dict:
+            self.rq_dict = CustomDict(self.rq_dict)
+        else:
+            self.rq_dict = CustomDict(xml2dict(self.rq_body, strip_ns=True))

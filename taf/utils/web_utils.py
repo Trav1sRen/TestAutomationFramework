@@ -6,7 +6,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
-from ..utils import typeassert, proj_root
+from ..utils import proj_root
 
 # Reader of project config file (.ini)
 config = configparser.ConfigParser()

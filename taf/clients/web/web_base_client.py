@@ -14,7 +14,8 @@ from selenium.webdriver.support.ui import Select
 from taf.clients import CommonDriverOps
 from taf.utils import proj_root, check_os, web_fluent_wait, UNSUPPORTED_TYPE
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -27,7 +28,8 @@ class WebBaseClient(CommonDriverOps):
         super(WebBaseClient, self).__init__(self.driver)
 
     @staticmethod
-    def _init_web_driver(browser, by_proxy='', headless=False, accept_untrusted_certs=True, window_width=1440,
+    def _init_web_driver(browser, by_proxy='', headless=False, accept_untrusted_certs=True,
+                         window_width=1440,
                          window_height=900, window_maximized=False):
         """
         Initialize the web driver for various browser type
@@ -91,7 +93,8 @@ class WebBaseClient(CommonDriverOps):
 
         self.driver.get(url)
 
-    def scroll_to(self, x=0, y='document.body.scrollHeight', to_bottom=False, scroll_pause_time=0.5):
+    def scroll_to(self, x=0, y='document.body.scrollHeight', to_bottom=False,
+                  scroll_pause_time=0.5):
         """
         Scroll to specified coordinate
         :param x: horizontal ordinate
@@ -136,14 +139,15 @@ class WebBaseClient(CommonDriverOps):
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[index])
 
-    def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, find_single=True, level='document',
+    def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, unique_loc=True,
+                       level='document',
                        lines=False):
         """
         Execute JavaScript at specified level
         :param script: JavaScript expression
         :param locator: locator of element if level is 'element'
         :param sel_type: locator type
-        :param find_single: flag to decide if returning single element other than list of elements
+        :param unique_loc: flag to decide if returning single element other than list of elements
         :param level: level of script executing on
         :param lines: flag to decide if executing lines of script on document level
         """
@@ -155,7 +159,8 @@ class WebBaseClient(CommonDriverOps):
         if level == 'element':
             if not re.match(r'arguments\[\d+]', script):
                 raise ValueError(err_msg)
-            result = web_fluent_wait(self.driver, locator, sel_type=sel_type, find_single=find_single)
+            result = web_fluent_wait(self.driver, locator, sel_type=sel_type,
+                                     unique_loc=unique_loc)
             self.driver.execute_script(script, result)
         else:
             if lines:
@@ -187,5 +192,7 @@ class WebBaseClient(CommonDriverOps):
             try:
                 select.select_by_visible_text(keyword)
             except NoSuchElementException:
-                logger.warning('Could not locate element with visible text "%s", try with value attribute' % keyword)
+                logger.warning(
+                    'Could not locate element with visible text "%s", try with value attribute' %
+                    keyword)
                 select.select_by_value(keyword)

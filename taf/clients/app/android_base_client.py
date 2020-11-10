@@ -16,7 +16,8 @@ class AndroidBaseClient(CommonDriverOps):
 
         super(CommonDriverOps, self).__init__(self.driver)
 
-    def _init_android_driver(self, apk_name, device_index=0, port=4723, automation_name='UiAutomator2', auto_grant=True,
+    def _init_android_driver(self, apk_name, device_index=0, port=4723,
+                             automation_name='UiAutomator2', auto_grant=True,
                              **extra_caps):
 
         desired_caps = {'platformName': 'Android',
@@ -42,9 +43,12 @@ class AndroidBaseClient(CommonDriverOps):
         contexts = self.driver.contexts
 
         if len(contexts) == 1:
-            raise RuntimeError('"WebView.setWebContentsDebuggingEnabled(true)" is not set in app source code')
+            raise RuntimeError(
+                '"WebView.setWebContentsDebuggingEnabled(true)" is not set in app source code')
 
         if webview:
-            self.driver.switch_to.context(list(filter(lambda con: con.startswith('WEBVIEW_'), contexts))[0])
+            self.driver.switch_to.context(
+                list(filter(lambda con: con.startswith('WEBVIEW_'), contexts))[0])
         else:
-            self.driver.switch_to.context(list(filter(lambda con: con == 'NATIVE_APP', contexts))[0])
+            self.driver.switch_to.context(
+                list(filter(lambda con: con == 'NATIVE_APP', contexts))[0])

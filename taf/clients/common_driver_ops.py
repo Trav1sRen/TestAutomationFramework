@@ -6,7 +6,8 @@ from selenium.webdriver.common.by import By
 
 from taf.utils import web_fluent_wait, UNSUPPORTED_TYPE
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -16,7 +17,8 @@ class CommonDriverOps:
 
         self.driver = driver
 
-    def input_val(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val, bundle=False):
+    def input_val(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val,
+                  bundle=False):
         """ Send value(s) to input box(es) """
 
         if not isinstance(val, Sequence):
@@ -38,7 +40,8 @@ class CommonDriverOps:
         else:
             web_fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
 
-    def click_element(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False, bundle=False):
+    def click_element(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False,
+                      bundle=False):
         """ Click the web element, double click is optional """
 
         if bundle:
@@ -61,15 +64,18 @@ class CommonDriverOps:
                     action_chains = ActionChains(self.driver)
                     action_chains.double_click(element).perform()
 
-    def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, expected_val,
+    def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR,
+                          expected_val,
                           multi_assert=False):
         """ Compare element text with expectation, comparing multiple texts is supported """
 
         if multi_assert:
             if isinstance(locators, dict):
-                actual = [web_fluent_wait(self.driver, loc, sel_type=sel).text for loc, sel in locators.items()]
+                actual = [web_fluent_wait(self.driver, loc, sel_type=sel).text for loc, sel in
+                          locators.items()]
             elif isinstance(locators, (tuple, list)):
-                actual = [web_fluent_wait(self.driver, loc, sel_type=sel_type).text for loc in locators]
+                actual = [web_fluent_wait(self.driver, loc, sel_type=sel_type).text for loc in
+                          locators]
             else:
                 raise TypeError(UNSUPPORTED_TYPE % (type(locators), 'locators'))
 

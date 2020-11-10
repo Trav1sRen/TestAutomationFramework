@@ -3,11 +3,11 @@ from xml.dom import minidom
 
 import requests
 
-
 from taf.utils import typeassert
 from .api_base_client import APIBaseClient
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -21,7 +21,8 @@ class SoapBaseClient(APIBaseClient):
         reparsed = minidom.parseString(rq_body)
         logger.info('Request Body: \n' + reparsed.toprettyxml(indent="\t"))
 
-        response = requests.request('POST', url, headers=headers, data=rq_body, verify=self.verify_ssl)
+        response = requests.request('POST', url, headers=headers, data=rq_body,
+                                    verify=self.verify_ssl)
         logger.info('***********************  REQUEST END  ***********************')
 
         self.output_response(response)

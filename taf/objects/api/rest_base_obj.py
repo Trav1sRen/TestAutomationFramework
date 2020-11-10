@@ -9,7 +9,8 @@ from lxml.etree import XMLSyntaxError
 from taf.utils import typeassert, CustomDict, xml2dict, cannot_be_instantiated
 from . import APIBaseObject
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -39,20 +40,17 @@ class RestBaseObject(APIBaseObject):
                 else:
                     return o.setdefault(k, {})
 
-        output = {}
         for key, val in self._flat_dict.items():
             path = key.split(self.delimiter)
 
             if re.match(patt, path[-1]):
                 raise ValueError('Last key of path should not contain index')
 
-            obj = reduce(_traversal, path[:-1], output)
+            obj = reduce(_traversal, path[:-1], self.rq_dict)
             if isinstance(obj, list):
                 obj.insert(tmp, {path[-1]: val})
             else:
                 obj[path[-1]] = val
-
-        self.rq_body = json.dumps(output, indent=4)  # for pretty print
 
     @typeassert(str)
     def load_client_response(self, rs_body):
@@ -68,6 +66,7 @@ class RestBaseObject(APIBaseObject):
                 self._rs_dict = CustomDict(xml2dict(rs_body))
             except XMLSyntaxError:
                 logger.warning('Response str could be neither parsed to json nor xml obj')
+        return self
 
     def process_response(self):
         raise NotImplementedError('You must customize the logic when processing the response')

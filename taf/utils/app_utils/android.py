@@ -14,11 +14,13 @@ class AndroidDevices:
         """ Get the os version of connected devices """
 
         return list(map(lambda udid: os.popen(
-            'adb -s %s shell getprop ro.build.version.release' % udid).readlines()[0].strip('\n'), self.udids))
+            'adb -s %s shell getprop ro.build.version.release' % udid).readlines()[0].strip('\n'),
+                        self.udids))
 
     @property
     def device_names(self):
         """ Get the product name of connected devices (Sometimes unnecessary) """
 
         return list(map(lambda udid: os.popen(
-            'adb -s %s shell getprop ro.product.model' % udid).readlines()[0].strip('\n'), self.udids))
+            'adb -s %s shell getprop ro.product.model' % udid).readlines()[0].strip('\n'),
+                        self.udids))

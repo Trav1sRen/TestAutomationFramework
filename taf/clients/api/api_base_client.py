@@ -6,7 +6,8 @@ import requests
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 from taf.utils import cannot_be_instantiated
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 

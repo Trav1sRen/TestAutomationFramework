@@ -7,7 +7,8 @@ from inspect import signature
 import lxml.etree as et
 import xmltodict
 
-logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO,
+                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 # default encoding
@@ -58,7 +59,8 @@ def typeassert(*tyargs, **ty_kwargs):
             for key, val in bound_values.items():
                 if key in bound_types:
                     if not isinstance(val, bound_types[key]):
-                        raise TypeError('Parameter <%s> must be the type of %s' % (key, bound_types[key]))
+                        raise TypeError(
+                            'Parameter <%s> must be the type of %s' % (key, bound_types[key]))
             return func(*args, **kwargs)
 
         return wrapper
@@ -143,5 +145,6 @@ def validate_schema(rs_body, schema_name):
 
         except et.DocumentInvalid:
             logger.error('Schema validation error, see error_schema.log')
-            with open(proj_root + 'log/error_schema_' + schema_name + '.log', 'w') as error_log_file:
+            with open(proj_root + 'log/error_schema_' + schema_name + '.log',
+                      'w') as error_log_file:
                 error_log_file.write(str(xmlschema.error_log))
