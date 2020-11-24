@@ -6,6 +6,8 @@ from inspect import signature
 
 import lxml.etree as et
 import xmltodict
+import jsonschema
+import re
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -111,40 +113,50 @@ def xml2dict(xml, strip_ns=False):
     return xmltodict.parse(result)
 
 
-@typeassert(str)
-def validate_schema(rs_body, schema_name):
-    """
-    Validate the response xml body against schema file
-    :param rs_body: response str
-    :param schema_name: name of the schema file to check against
-    """
+class SchemaValidator:
+    @typeassert(str)
+    def __init__(self, body, schema_path):
+        """
+        Validate the response xml body against schema file
+        :param body: str body to be verified
+        :param schema_path: path of the XmlSchema file inside 'proj_root/schema/' folder to check against
+        """
 
-    # open and read schema file
-    with open(proj_root + '/schema/' + schema_name + '.xsd') as schema_file:
-        schema_to_check = schema_file.read()
-    xmlschema_doc = et.fromstring(schema_to_check)
-    xmlschema = et.XMLSchema(xmlschema_doc)
+        self._body = body
 
-    # parse xml
-    doc = None
-    try:
-        doc = et.fromstring(rs_body)
-        logger.info('XML well formed, syntax ok.')
+        m = re.match(r'.+/(.+?)\.(json|xsd)', schema_path)
+        if not m:
+            raise ValueError('Schema path does not match the pattern.')
+        self._schema_name = m.group(1)
 
-    # check for XML syntax errors
-    except et.XMLSyntaxError as err:
-        logger.error('XML Syntax Error, see error_syntax.log')
-        with open('proj_root + log/error_syntax_' + schema_name + '.log', 'w') as error_log_file:
-            error_log_file.write(str(err))
+        # open and read schema file
+        with open(proj_root + '/schema/' + schema_path) as schema_file:
+            self._schema_to_check = schema_file.read()
 
-    # validate against schema
-    if doc is not None:
+    def validate_xml_schema(self):
+        xmlschema_doc = et.fromstring(self._schema_to_check)
+        xmlschema = et.XMLSchema(xmlschema_doc)
+
+        # parse xml
+        doc = None
         try:
-            xmlschema.assertValid(doc)
-            logger.info('XML valid, schema validation ok.')
+            doc = et.fromstring(self._body)
+            logger.info('XML well formed, syntax ok.')
 
-        except et.DocumentInvalid:
-            logger.error('Schema validation error, see error_schema.log')
-            with open(proj_root + 'log/error_schema_' + schema_name + '.log',
-                      'w') as error_log_file:
-                error_log_file.write(str(xmlschema.error_log))
+        # check for XML syntax errors
+        except et.XMLSyntaxError as err:
+            logger.error('XML Syntax Error, see error_syntax.log')
+            with open('proj_root + log/error_syntax_' + self._schema_name + '.log', 'w') as error_log_file:
+                error_log_file.write(str(err))
+
+        # validate against schema
+        if doc is not None:
+            try:
+                xmlschema.assertValid(doc)
+                logger.info('XML valid, schema validation ok.')
+
+            except et.DocumentInvalid:
+                logger.error('Schema validation error, see error_schema.log')
+                with open(proj_root + 'log/error_schema_' + self._schema_name + '.log',
+                          'w') as error_log_file:
+                    error_log_file.write(str(xmlschema.error_log))

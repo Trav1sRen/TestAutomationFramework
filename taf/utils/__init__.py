@@ -3,7 +3,7 @@ from collections.abc import Iterable
 
 from .api_utils import CustomDict
 from .api_utils import encoding, var_dict, proj_root
-from .api_utils import typeassert, xml2dict, validate_schema
+from .api_utils import typeassert, xml2dict, validate_xml_schema
 from .err_msg import *
 from .web_utils import check_os, fluent_wait, web_fluent_wait, non_private_vars, ALLOWED_LOC_TYPES
 

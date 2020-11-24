@@ -1,7 +1,7 @@
 import json
 
 from ..clients.api import SoapBaseClient, RestBaseClient
-from ..utils import typeassert, validate_schema
+from ..utils import typeassert, validate_xml_schema
 
 
 class ApiEntrance:
@@ -19,16 +19,13 @@ class ApiEntrance:
         self.api_obj = getattr(module, cls_name)(*args, **kwargs)
 
     @typeassert(dict, schema_name=str, extra_headers=dict)
-    def dispatch_soap_request(self, json_mapping, *, verify_ssl=False, check_schema=False,
-                              schema_name=None,
-                              extra_headers=None,
+    def dispatch_soap_request(self, json_mapping, *, verify_ssl=False, schema_path=None, extra_headers=None,
                               **xml_args):
         """
         Entrance to dispatch soap request
         :param json_mapping: mapping of json file name and obj name
         :param verify_ssl: flag of if verifying ssl, default is False
-        :param check_schema: flag of if checking XML schema
-        :param schema_name: name of schema file for reference
+        :param schema_path: path of XmlSchema file inside the schema folder for reference
         :param extra_headers: extra headers for the request
         :param xml_args: arguments used to construct SOAP body
         """
@@ -42,19 +39,15 @@ class ApiEntrance:
         client = SoapBaseClient(verify_ssl=verify_ssl)
         client.send_req(self.api_obj.url, self.api_obj.default_headers, self.api_obj.rq_body)
 
-        if check_schema:
-            schema_name = schema_name or ''
-            if schema_name == '':
-                raise ValueError('schema name cannot be an empty string')
-            validate_schema(client.rs_body, schema_name)
+        schema_path = schema_path or ''
+        if schema_path:
+            validate_xml_schema(client.rs_body, schema_path)
 
         self.api_obj.load_client_response(client.rs_body).process_response()
 
     @typeassert(json_mapping=dict, extra_headers=dict)
-    def dispatch_rest_request(self, method, json_mapping, *, xml_format=False, verify_ssl=False,
-                              extra_headers=None,
-                              with_query=None,
-                              with_body=None):
+    def dispatch_rest_request(self, method, json_mapping, *, xml_format=False, verify_ssl=False, extra_headers=None,
+                              with_query=None, with_body=None, schema_path=None):
 
         """
         Entrance to dispatch rest request
@@ -65,6 +58,7 @@ class ApiEntrance:
         :param extra_headers: extra headers for the request
         :param with_query: flag of if the request is with query params in the url
         :param with_body: flag of if the request is with request body
+        :param schema_path: path of JsonSchema file inside the schema folder for reference
         """
 
         with_query = with_query or False
@@ -97,4 +91,7 @@ class ApiEntrance:
                             # 'indent' arg for pretty print
                             rq_body=json.dumps(self.api_obj.rq_dict, indent=4))
 
+        schema_path = schema_path or ''
+        if schema_path:
+            validate_schema(client.rs_body, schema_path)
         self.api_obj.load_client_response(client.rs_body).process_response()
