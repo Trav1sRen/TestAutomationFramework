@@ -1,13 +1,15 @@
 import base64
+import json
 import logging
+import re
 import sys
+from abc import ABCMeta, abstractmethod
 from functools import wraps
 from inspect import signature
 
+import jsonschema
 import lxml.etree as et
 import xmltodict
-import jsonschema
-import re
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -113,13 +115,13 @@ def xml2dict(xml, strip_ns=False):
     return xmltodict.parse(result)
 
 
-class SchemaValidator:
+class SchemaValidator(metaclass=ABCMeta):
     @typeassert(str)
     def __init__(self, body, schema_path):
         """
         Validate the response xml body against schema file
         :param body: str body to be verified
-        :param schema_path: path of the XmlSchema file inside 'proj_root/schema/' folder to check against
+        :param schema_path: path of the schema file inside 'proj_root/schema/' folder to check against
         """
 
         self._body = body
@@ -133,7 +135,35 @@ class SchemaValidator:
         with open(proj_root + '/schema/' + schema_path) as schema_file:
             self._schema_to_check = schema_file.read()
 
-    def validate_xml_schema(self):
+    @typeassert(log=str)
+    def _write_log(self, prefix, log):
+        with open(proj_root + 'log/' + prefix + self._schema_name + '.log', 'w') as error_log_file:
+            error_log_file.write(log)
+
+    @abstractmethod
+    def validate_schema(self):
+        pass
+
+
+class JsonValidator(SchemaValidator):
+    def validate_schema(self):
+        checker = jsonschema.FormatChecker()
+        validator = jsonschema.validators.Draft6Validator(json.loads(self._schema_to_check), format_checker=checker)
+
+        msg = []
+        for err in validator.iter_errors(json.loads(self._body)):
+            field_name = '-'.join(err.absolute_path)
+            msg.append('Validate Error, flied[%s], error msg: %s' % (field_name, err.message))
+
+        if not msg:
+            logger.info('JSON valid, schema validation ok.')
+        else:
+            logger.error('JSON schema validation error, see error_jsonschema.log')
+            self._write_log('error_jsonschema_', '\n'.join(msg))
+
+
+class XmlValidator(SchemaValidator):
+    def validate_schema(self):
         xmlschema_doc = et.fromstring(self._schema_to_check)
         xmlschema = et.XMLSchema(xmlschema_doc)
 
@@ -146,8 +176,7 @@ class SchemaValidator:
         # check for XML syntax errors
         except et.XMLSyntaxError as err:
             logger.error('XML Syntax Error, see error_syntax.log')
-            with open('proj_root + log/error_syntax_' + self._schema_name + '.log', 'w') as error_log_file:
-                error_log_file.write(str(err))
+            self._write_log('error_syntax_', str(err))
 
         # validate against schema
         if doc is not None:
@@ -156,7 +185,5 @@ class SchemaValidator:
                 logger.info('XML valid, schema validation ok.')
 
             except et.DocumentInvalid:
-                logger.error('Schema validation error, see error_schema.log')
-                with open(proj_root + 'log/error_schema_' + self._schema_name + '.log',
-                          'w') as error_log_file:
-                    error_log_file.write(str(xmlschema.error_log))
+                logger.error('XML schema validation error, see error_xmlschema.log')
+                self._write_log('error_xmlschema_', str(xmlschema.error_log))

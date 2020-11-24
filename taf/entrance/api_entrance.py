@@ -1,7 +1,7 @@
 import json
 
 from ..clients.api import SoapBaseClient, RestBaseClient
-from ..utils import typeassert, validate_xml_schema
+from ..utils import typeassert, JsonValidator, XmlValidator
 
 
 class ApiEntrance:
@@ -41,7 +41,7 @@ class ApiEntrance:
 
         schema_path = schema_path or ''
         if schema_path:
-            validate_xml_schema(client.rs_body, schema_path)
+            XmlValidator(client.rs_body, schema_path).validate_schema()
 
         self.api_obj.load_client_response(client.rs_body).process_response()
 
@@ -93,5 +93,8 @@ class ApiEntrance:
 
         schema_path = schema_path or ''
         if schema_path:
-            validate_schema(client.rs_body, schema_path)
+            if xml_format:
+                XmlValidator(client.rs_body, schema_path).validate_schema()
+            else:
+                JsonValidator(client.rs_body, schema_path).validate_schema()
         self.api_obj.load_client_response(client.rs_body).process_response()
