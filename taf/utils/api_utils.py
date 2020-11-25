@@ -151,9 +151,12 @@ class JsonValidator(SchemaValidator):
         validator = jsonschema.validators.Draft6Validator(json.loads(self._schema_to_check), format_checker=checker)
 
         msg = []
-        for err in validator.iter_errors(json.loads(self._body)):
-            field_name = '-'.join(err.absolute_path)
-            msg.append('Validate Error, flied[%s], error msg: %s' % (field_name, err.message))
+        iter_errors = validator.iter_errors(json.loads(self._body))
+
+        if not iter_errors:
+            for err in iter_errors:
+                field_name = '-'.join(err.absolute_path)
+                msg.append('Validate Error, flied[%s], error msg: %s' % (field_name, err.message))
 
         if not msg:
             logger.info('JSON valid, schema validation ok.')
