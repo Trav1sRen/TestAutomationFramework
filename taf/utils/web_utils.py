@@ -7,7 +7,7 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
 from .err_msg import WAIT_TIME_OUT
-from ..utils import proj_root
+from ..utils import proj_root, typeassert
 
 # Reader of project config file (.ini)
 config = configparser.ConfigParser()
@@ -22,23 +22,26 @@ def non_private_vars(cls):
 ALLOWED_LOC_TYPES = non_private_vars(By)
 
 
-def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique_loc=True):
+@typeassert(timeout=int)
+def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique_loc=True, timeout=None):
     """
     Fluent wait until element is found within timeout limit
     :param driver: current running driver
     :param selector: locator of the element to be found
     :param sel_type: locator type (recommend to use By class variable)
     :param unique_loc: flag to decide if returning single element other than list of elements
+    :param timeout: customized timeout range, if not specified, use the default
     :return: obtained web element(s)
     """
 
     if isinstance(selector, tuple):  # Return value of <get_loc> in page object
         selector, sel_type = selector
 
-    try:
-        timeout = int(config['TEST_CONTROL']['WAIT_TIME_OUT'])
-    except KeyError:
-        timeout = 30
+    if not timeout:
+        try:
+            timeout = int(config['TEST_CONTROL']['WAIT_TIME_OUT'])
+        except KeyError:
+            timeout = 30
 
     try:
         poll_frequency = int(config['TEST_CONTROL']['POLL_FREQUENCY'])

@@ -4,8 +4,7 @@ from functools import partial
 
 import lxml.etree as et
 
-from taf.utils import typeassert, CustomDict, xml2dict, var_dict, proj_root, encoding, \
-    cannot_be_instantiated
+from taf.utils import typeassert, CustomDict, xml2dict, var_dict, proj_root, encoding, cannot_be_instantiated
 
 
 class APIBaseObject:
