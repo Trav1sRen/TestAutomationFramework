@@ -2,9 +2,10 @@ import logging
 from collections.abc import Sequence
 
 from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import TimeoutException
 from selenium.webdriver.common.by import By
 
-from taf.utils import web_fluent_wait, UNSUPPORTED_TYPE
+from taf.utils import web_fluent_wait, UNSUPPORTED_TYPE, fluent_wait
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -17,52 +18,26 @@ class CommonDriverOps:
 
         self.driver = driver
 
-    def input_val(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, val,
-                  bundle=False):
-        """ Send value(s) to input box(es) """
+    def type_text(self, locator, text, sel_type=By.CSS_SELECTOR):
+        """ Type text into input box """
 
-        if not isinstance(val, Sequence):
-            raise TypeError(UNSUPPORTED_TYPE % (type(val), 'val'))
+        web_fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(text)
 
-        if bundle:
-            if isinstance(val, str):
-                val = [s.strip() for s in val.split(',')]
+        # For chain call
+        return self
 
-            if isinstance(locators, dict):
-                for i, (loc, sel) in enumerate(locators.items()):
-                    self.input_val(loc, sel_type=sel, val=val[i])
-            elif isinstance(locators, (tuple, list)):
-                for i, loc in enumerate(locators):
-                    self.input_val(loc, sel_type=sel_type, val=val[i])
-            else:
-                raise TypeError(UNSUPPORTED_TYPE % (type(locators), 'locators'))
+    def click(self, locator, sel_type=By.CSS_SELECTOR, double=False):
+        """ Click the element, double click is optional """
 
+        ele = web_fluent_wait(self.driver, locator, sel_type=sel_type)
+
+        if not double:
+            ele.click()
         else:
-            web_fluent_wait(self.driver, locator, sel_type=sel_type).send_keys(val)
+            action_chains = ActionChains(self.driver)
+            action_chains.double_click(ele).perform()
 
-    def click_element(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR, double=False,
-                      bundle=False):
-        """ Click the web element, double click is optional """
-
-        if bundle:
-            if isinstance(locators, dict):
-                for loc, sel in locators.items():
-                    self.click_element(loc, sel_type=sel, double=double)
-            elif isinstance(locators, (tuple, list)):
-                for loc in locators:
-                    self.click_element(loc, sel_type=sel_type, double=double)
-            else:
-                raise TypeError(UNSUPPORTED_TYPE % (type(locators), 'locators'))
-
-        else:
-            element = web_fluent_wait(self.driver, locator, sel_type=sel_type)
-
-            if not element.is_selected():
-                if not double:
-                    element.click()
-                else:
-                    action_chains = ActionChains(self.driver)
-                    action_chains.double_click(element).perform()
+        return self
 
     def expect_text_to_be(self, locator=None, *, locators=None, sel_type=By.CSS_SELECTOR,
                           expected_val,
@@ -85,3 +60,12 @@ class CommonDriverOps:
         logger.info('Actual text value(s): %s' % list(actual))
         logger.info('Expected text value(s): %s' % list(expected_val))
         assert list(actual) == list(expected_val)
+
+    def if_element_exists(self, locator, sel_type=By.CSS_SELECTOR):
+        """ Check if element exists, if exists, return this element, return None otherwise """
+
+        try:
+            # Hard code timeout here to prevent waiting too long if element does not exist
+            return fluent_wait(self.driver, locator, sel_type=sel_type, timeout=5)
+        except TimeoutException:
+            return None
