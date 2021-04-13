@@ -6,6 +6,7 @@ from selenium.common.exceptions import StaleElementReferenceException
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.wait import WebDriverWait
 
+from .err_msg import WAIT_TIME_OUT
 from ..utils import proj_root
 
 # Reader of project config file (.ini)
@@ -50,7 +51,7 @@ def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique_loc=True):
             ele = dri.find_element(sel_type, selector)
             return ele if ele.is_displayed() else False
 
-        return wait.until(_expected)
+        return wait.until(_expected, WAIT_TIME_OUT)
     else:
         def _expected(dri):
             ele_arr = dri.find_elements(sel_type, selector)
@@ -59,7 +60,7 @@ def fluent_wait(driver, selector, *, sel_type=By.CSS_SELECTOR, unique_loc=True):
                     return False
             return ele_arr
 
-        return wait.until(_expected)
+        return wait.until(_expected, WAIT_TIME_OUT)
 
 
 def check_os():

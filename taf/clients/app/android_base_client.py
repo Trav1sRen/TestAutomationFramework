@@ -14,7 +14,7 @@ class AndroidBaseClient(CommonDriverOps):
 
         self.driver = self._init_android_driver(*args, **kwargs)
 
-        super(CommonDriverOps, self).__init__(self.driver)
+        super(AndroidBaseClient, self).__init__(self.driver)
 
     def _init_android_driver(self, apk_name, device_index=0, port=4723,
                              automation_name='UiAutomator2', auto_grant=True,
