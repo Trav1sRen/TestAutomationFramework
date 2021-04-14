@@ -1,8 +1,6 @@
 import logging
-import re
 import sys
 import time
-from collections.abc import Sequence
 from datetime import datetime
 
 from selenium import webdriver
@@ -12,7 +10,7 @@ from selenium.webdriver.common.proxy import Proxy, ProxyType
 from selenium.webdriver.support.ui import Select
 
 from taf.clients import CommonDriverOps
-from taf.utils import proj_root, check_os, web_fluent_wait, UNSUPPORTED_TYPE
+from taf.utils import proj_root, check_os, web_fluent_wait
 
 logging.basicConfig(level=logging.INFO,
                     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
@@ -104,9 +102,9 @@ class WebBaseClient(CommonDriverOps):
         """
 
         if not to_bottom:
-            self.execute_script('window.scrollTo(%s, %s)' % (x, y))
+            self.driver.execute_script('window.scrollTo(%s, %s)' % (x, y))
         else:
-            last_height = self.execute_script("return document.body.scrollHeight")
+            last_height = self.driver.execute_script("return document.body.scrollHeight")
 
             while True:
                 # Scroll down to bottom
@@ -116,7 +114,7 @@ class WebBaseClient(CommonDriverOps):
                 time.sleep(scroll_pause_time)
 
                 # Calculate new scroll height and compare with last scroll height
-                new_height = self.execute_script("return document.body.scrollHeight")
+                new_height = self.driver.execute_script("return document.body.scrollHeight")
                 if new_height == last_height:
                     break
                 last_height = new_height
@@ -138,43 +136,6 @@ class WebBaseClient(CommonDriverOps):
 
         windows = self.driver.window_handles
         self.driver.switch_to.window(windows[index])
-
-    def execute_script(self, script, locator=None, sel_type=By.CSS_SELECTOR, unique_loc=True,
-                       level='document',
-                       lines=False):
-        """
-        Execute JavaScript at specified level
-        :param script: JavaScript expression
-        :param locator: locator of element if level is 'element'
-        :param sel_type: locator type
-        :param unique_loc: flag to decide if returning single element other than list of elements
-        :param level: level of script executing on
-        :param lines: flag to decide if executing lines of script on document level
-        """
-
-        if level not in ('document', 'element'):
-            raise ValueError('Accept a wrong argument for <level>')
-
-        err_msg = 'Script expression has no valid pattern'
-        if level == 'element':
-            if not re.match(r'arguments\[\d+]', script):
-                raise ValueError(err_msg)
-            result = web_fluent_wait(self.driver, locator, sel_type=sel_type,
-                                     unique_loc=unique_loc)
-            self.driver.execute_script(script, result)
-        else:
-            if lines:
-                if not isinstance(script, Sequence):
-                    raise TypeError(UNSUPPORTED_TYPE % (type(script), 'script'))
-
-                script = [sc.strip() for sc in script.split(';') if len(
-                    sc) != 0 and not sc.isspace()] if isinstance(script, str) else script
-                for line in script:
-                    self.execute_script(line)
-
-            if not re.match(r'document|window', script):
-                raise ValueError(err_msg)
-            self.driver.execute_script(script)
 
     def select_val(self, locator, sel_type=By.CSS_SELECTOR, *, keyword):
         """

@@ -135,14 +135,17 @@ class APIBaseObject:
         """
         self.default_headers.update(self._load_variables(extras))
 
-    @typeassert(dict)
-    def unpack_json(self, kwargs):
+    @typeassert(dict, j=dict)
+    def unpack_json(self, kwargs=None, *, j=None):
         """
         Load json body from files
         :param kwargs: mapping of json file name and jsonobj name
+        :param j: use specified json body instead of reading from file
         """
 
-        d = {}
+        kwargs = kwargs or {}
+
+        d = j or {}
         for file_name, obj_name in kwargs.items():
             with open(proj_root + '/json/%s.json' % file_name) as file_obj:
                 tmp_d = json.load(file_obj)
