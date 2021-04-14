@@ -25,7 +25,7 @@ class WebBaseClient(CommonDriverOps):
 
         self.driver = self._init_web_driver(*args, **kwargs)
 
-        super(WebBaseClient, self).__init__(self.driver)
+        super(WebBaseClient, self).__init__(self.driver, web_fluent_wait)
 
     @staticmethod
     def _init_web_driver(browser, by_proxy='', headless=False, accept_untrusted_certs=True,
