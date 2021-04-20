@@ -12,8 +12,7 @@ from selenium.webdriver.support.ui import Select
 from taf.clients import CommonDriverOps
 from taf.utils import proj_root, check_os, web_fluent_wait
 
-logging.basicConfig(level=logging.INFO,
-                    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 
@@ -154,6 +153,5 @@ class WebBaseClient(CommonDriverOps):
                 select.select_by_visible_text(keyword)
             except NoSuchElementException:
                 logger.warning(
-                    'Could not locate element with visible text "%s", try with value attribute' %
-                    keyword)
+                    'Could not locate element with visible text "%s", try with value attribute' % keyword)
                 select.select_by_value(keyword)
