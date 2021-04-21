@@ -12,5 +12,5 @@ setup(
     platforms="any",
     install_requires=[
         'lxml', 'requests', 'xmltodict',
-        'selenium', 'Appium-Python-Client', 'jsonschema']  # Rmb to add new dependencies into here
+        'selenium', 'Appium-Python-Client', 'jsonschema', 'gevent']  # Rmb to add new dependencies into here
 )
